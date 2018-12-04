@@ -1,0 +1,850 @@
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 91.258702 in location
+[-0.29287006  1.03227797]
+the 1 th sample point is:
+[2.         0.53061224]
+EI value is: 143
+sample value is 1204.665140
+2018-12-03 10:41:06
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 91.258702 in location
+[-0.29287006  1.03227797]
+the 2 th sample point is:
+[ 0.20408163 -2.        ]
+EI value is: 744
+sample value is 417.466678
+2018-12-03 10:41:12
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 91.258702 in location
+[-0.29287006  1.03227797]
+the 3 th sample point is:
+[-0.69387755 -2.        ]
+EI value is: 677
+sample value is 618.636600
+2018-12-03 10:41:17
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 91.258702 in location
+[-0.29287006  1.03227797]
+the 4 th sample point is:
+[ 0.93877551 -2.        ]
+EI value is: 363
+sample value is 830.192405
+2018-12-03 10:41:22
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 91.258702 in location
+[-0.29287006  1.03227797]
+the 5 th sample point is:
+[-2. -2.]
+EI value is: 1740
+sample value is 3609.000000
+2018-12-03 10:41:27
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 91.258702 in location
+[-0.29287006  1.03227797]
+the 6 th sample point is:
+[-2.  2.]
+EI value is: 1401
+sample value is 409.000000
+2018-12-03 10:41:33
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 91.258702 in location
+[-0.29287006  1.03227797]
+the 7 th sample point is:
+[-0.93877551  2.        ]
+EI value is: 1069
+sample value is 128.907941
+2018-12-03 10:41:38
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 91.258702 in location
+[-0.29287006  1.03227797]
+the 8 th sample point is:
+[ 0.44897959 -0.12244898]
+EI value is: 983
+sample value is 10.803275
+2018-12-03 10:41:43
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 10.803275 in location
+[ 0.44897959 -0.12244898]
+the 9 th sample point is:
+[2. 2.]
+EI value is: 926
+sample value is 401.000000
+2018-12-03 10:41:49
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 10.803275 in location
+[ 0.44897959 -0.12244898]
+the 10 th sample point is:
+[-0.36734694 -0.53061224]
+EI value is: 778
+sample value is 46.166119
+2018-12-03 10:41:54
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 10.803275 in location
+[ 0.44897959 -0.12244898]
+the 11 th sample point is:
+[-2.         0.6122449]
+EI value is: 709
+sample value is 1156.688463
+2018-12-03 10:42:01
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 10.803275 in location
+[ 0.44897959 -0.12244898]
+the 12 th sample point is:
+[1.34693878 2.        ]
+EI value is: 1080
+sample value is 3.570893
+2018-12-03 10:42:06
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 3.570893 in location
+[1.34693878 2.        ]
+the 13 th sample point is:
+[0.20408163 2.        ]
+EI value is: 1071
+sample value is 384.147227
+2018-12-03 10:42:13
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 3.570893 in location
+[1.34693878 2.        ]
+the 14 th sample point is:
+[-1.42857143  2.        ]
+EI value is: 971
+sample value is 6.064556
+2018-12-03 10:42:19
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 3.570893 in location
+[1.34693878 2.        ]
+the 15 th sample point is:
+[-1.26530612 -2.        ]
+EI value is: 902
+sample value is 1301.851412
+2018-12-03 10:42:26
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 3.570893 in location
+[1.34693878 2.        ]
+the 16 th sample point is:
+[1.10204082 0.36734694]
+EI value is: 702
+sample value is 71.776220
+2018-12-03 10:42:33
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 3.570893 in location
+[1.34693878 2.        ]
+the 17 th sample point is:
+[-0.7755102   0.69387755]
+EI value is: 435
+sample value is 4.007349
+2018-12-03 10:42:40
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 3.570893 in location
+[1.34693878 2.        ]
+the 18 th sample point is:
+[-0.36734694  2.        ]
+EI value is: 466
+sample value is 349.713110
+2018-12-03 10:42:46
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 3.570893 in location
+[1.34693878 2.        ]
+the 19 th sample point is:
+[0.36734694 0.85714286]
+EI value is: 416
+sample value is 52.557402
+2018-12-03 10:42:53
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 3.570893 in location
+[1.34693878 2.        ]
+the 20 th sample point is:
+[ 0.04081633 -0.04081633]
+EI value is: 386
+sample value is 1.100508
+2018-12-03 10:42:59
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 1.100508 in location
+[ 0.04081633 -0.04081633]
+the 21 th sample point is:
+[-0.85714286 -0.7755102 ]
+EI value is: 361
+sample value is 231.520616
+2018-12-03 10:43:06
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 1.100508 in location
+[ 0.04081633 -0.04081633]
+the 22 th sample point is:
+[ 0.93877551 -0.69387755]
+EI value is: 366
+sample value is 248.122010
+2018-12-03 10:43:12
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 1.100508 in location
+[ 0.04081633 -0.04081633]
+the 23 th sample point is:
+[-1.26530612  1.10204082]
+EI value is: 330
+sample value is 30.027597
+2018-12-03 10:43:18
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 1.100508 in location
+[ 0.04081633 -0.04081633]
+the 24 th sample point is:
+[ 2. -2.]
+EI value is: 339
+sample value is 3601.000000
+2018-12-03 10:43:25
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 1.100508 in location
+[ 0.04081633 -0.04081633]
+the 25 th sample point is:
+[-0.20408163 -2.        ]
+EI value is: 611
+sample value is 418.283004
+2018-12-03 10:43:31
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 1.100508 in location
+[ 0.04081633 -0.04081633]
+the 26 th sample point is:
+[1.51020408 0.53061224]
+EI value is: 554
+sample value is 306.546752
+2018-12-03 10:43:38
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 1.100508 in location
+[ 0.04081633 -0.04081633]
+the 27 th sample point is:
+[0.7755102  0.53061224]
+EI value is: 408
+sample value is 0.551714
+2018-12-03 10:43:45
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 28 th sample point is:
+[1.67346939 2.        ]
+EI value is: 420
+sample value is 64.533553
+2018-12-03 10:43:51
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 29 th sample point is:
+[-1.59183673  0.85714286]
+EI value is: 368
+sample value is 287.883889
+2018-12-03 10:43:58
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 30 th sample point is:
+[ 0.53061224 -2.        ]
+EI value is: 403
+sample value is 520.767071
+2018-12-03 10:44:05
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 31 th sample point is:
+[1.02040816 2.        ]
+EI value is: 358
+sample value is 91.923867
+2018-12-03 10:44:12
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 32 th sample point is:
+[ 1.26530612 -0.85714286]
+EI value is: 285
+sample value is 604.316813
+2018-12-03 10:44:19
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 33 th sample point is:
+[-0.53061224  0.28571429]
+EI value is: 266
+sample value is 2.344509
+2018-12-03 10:44:26
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 34 th sample point is:
+[0.04081633 1.02040816]
+EI value is: 245
+sample value is 104.703598
+2018-12-03 10:44:34
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 35 th sample point is:
+[-1.67346939  2.        ]
+EI value is: 236
+sample value is 71.227430
+2018-12-03 10:44:41
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 36 th sample point is:
+[-0.69387755  2.        ]
+EI value is: 223
+sample value is 233.463755
+2018-12-03 10:44:48
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 37 th sample point is:
+[ 0.20408163 -0.93877551]
+EI value is: 223
+sample value is 96.756769
+2018-12-03 10:44:55
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 38 th sample point is:
+[1.26530612 1.18367347]
+EI value is: 195
+sample value is 17.486496
+2018-12-03 10:45:03
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 39 th sample point is:
+[-0.12244898 -0.93877551]
+EI value is: 180
+sample value is 92.227472
+2018-12-03 10:45:10
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 40 th sample point is:
+[ 0.6122449  -0.85714286]
+EI value is: 173
+sample value is 151.929470
+2018-12-03 10:45:17
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 41 th sample point is:
+[-0.20408163  0.12244898]
+EI value is: 172
+sample value is 2.102671
+2018-12-03 10:45:25
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 42 th sample point is:
+[ 1.26530612 -2.        ]
+EI value is: 166
+sample value is 1296.790187
+2018-12-03 10:45:33
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 43 th sample point is:
+[0.93877551 1.18367347]
+EI value is: 156
+sample value is 9.146753
+2018-12-03 10:45:42
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 44 th sample point is:
+[-1.34693878 -0.69387755]
+EI value is: 139
+sample value is 634.575526
+2018-12-03 10:45:50
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 45 th sample point is:
+[-1.02040816  1.10204082]
+EI value is: 144
+sample value is 4.451810
+2018-12-03 10:45:58
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 46 th sample point is:
+[-0.7755102  -0.04081633]
+EI value is: 126
+sample value is 44.398682
+2018-12-03 10:46:07
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 47 th sample point is:
+[-1.18367347  2.        ]
+EI value is: 124
+sample value is 40.638601
+2018-12-03 10:46:16
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 48 th sample point is:
+[-0.53061224 -1.18367347]
+EI value is: 115
+sample value is 217.030566
+2018-12-03 10:46:25
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 49 th sample point is:
+[-0.12244898  2.        ]
+EI value is: 114
+sample value is 395.284872
+2018-12-03 10:46:34
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 50 th sample point is:
+[1.51020408 1.42857143]
+EI value is: 113
+sample value is 72.875408
+2018-12-03 10:46:42
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 51 th sample point is:
+[0.6122449  1.10204082]
+EI value is: 108
+sample value is 53.031902
+2018-12-03 10:46:50
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 52 th sample point is:
+[-0.6122449   1.18367347]
+EI value is: 94
+sample value is 68.019875
+2018-12-03 10:46:59
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 53 th sample point is:
+[ 0.69387755 -0.12244898]
+EI value is: 90
+sample value is 36.565048
+2018-12-03 10:47:07
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 54 th sample point is:
+[ 1.75510204 -0.36734694]
+EI value is: 86
+sample value is 1189.254472
+2018-12-03 10:47:16
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 55 th sample point is:
+[-1.42857143  0.20408163]
+EI value is: 101
+sample value is 343.257393
+2018-12-03 10:47:25
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 56 th sample point is:
+[0.20408163 0.36734694]
+EI value is: 87
+sample value is 11.241380
+2018-12-03 10:47:34
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 57 th sample point is:
+[0.44897959 2.        ]
+EI value is: 85
+sample value is 323.734111
+2018-12-03 10:47:42
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 58 th sample point is:
+[0.53061224 0.44897959]
+EI value is: 70
+sample value is 3.023613
+2018-12-03 10:47:51
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 59 th sample point is:
+[-0.6122449  -0.44897959]
+EI value is: 64
+sample value is 70.467834
+2018-12-03 10:48:00
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 60 th sample point is:
+[-1.51020408  1.51020408]
+EI value is: 64
+sample value is 65.670043
+2018-12-03 10:48:09
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 61 th sample point is:
+[1.75510204 1.26530612]
+EI value is: 60
+sample value is 330.020649
+2018-12-03 10:48:20
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 62 th sample point is:
+[ 0.20408163 -0.28571429]
+EI value is: 56
+sample value is 11.350179
+2018-12-03 10:48:29
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 63 th sample point is:
+[-0.93877551  0.44897959]
+EI value is: 53
+sample value is 22.448897
+2018-12-03 10:48:38
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 64 th sample point is:
+[ 1.34693878 -0.04081633]
+EI value is: 49
+sample value is 344.245272
+2018-12-03 10:48:48
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 65 th sample point is:
+[-2.         -0.44897959]
+EI value is: 51
+sample value is 1988.341941
+2018-12-03 10:48:57
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 66 th sample point is:
+[-0.93877551 -2.        ]
+EI value is: 46
+sample value is 833.947507
+2018-12-03 10:49:07
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 67 th sample point is:
+[1.10204082 1.34693878]
+EI value is: 44
+sample value is 1.764575
+2018-12-03 10:49:16
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 68 th sample point is:
+[0.93877551 0.12244898]
+EI value is: 41
+sample value is 57.589153
+2018-12-03 10:49:26
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 69 th sample point is:
+[-0.36734694  0.36734694]
+EI value is: 41
+sample value is 7.270761
+2018-12-03 10:49:36
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 70 th sample point is:
+[1.51020408 2.        ]
+EI value is: 38
+sample value is 8.140476
+2018-12-03 10:49:46
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 71 th sample point is:
+[-0.12244898  0.6122449 ]
+EI value is: 37
+sample value is 36.930785
+2018-12-03 10:49:55
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 72 th sample point is:
+[-0.85714286  1.34693878]
+EI value is: 36
+sample value is 40.933361
+2018-12-03 10:50:05
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 73 th sample point is:
+[-1.59183673 -2.        ]
+EI value is: 35
+sample value is 2062.382609
+2018-12-03 10:50:15
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 74 th sample point is:
+[ 0.36734694 -0.85714286]
+EI value is: 33
+sample value is 98.823838
+2018-12-03 10:50:26
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 75 th sample point is:
+[-0.12244898 -0.36734694]
+EI value is: 27
+sample value is 15.878332
+2018-12-03 10:50:36
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 76 th sample point is:
+[1.02040816 0.7755102 ]
+EI value is: 28
+sample value is 7.061267
+2018-12-03 10:50:47
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
+Current minimnum is 0.551714 in location
+[0.7755102  0.53061224]
+the 77 th sample point is:
+[-1.18367347  1.51020408]
+EI value is: 27
+sample value is 5.959173
+2018-12-03 10:50:57
+
+initializing Y
+initializing inference method
+adding kernel and likelihood as parameters
