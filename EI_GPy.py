@@ -14,11 +14,14 @@ from scipy.stats import norm
 import logging
 import datetime
 def main():
-    for handler in logging.root.handlers[:]:
-        logging.root.removeHandler(handler)
-    logging.basicConfig(filename='EI_GPy.log',\
-                        format='%(message)s',\
-                        filemode='w', level=logging.DEBUG)
+# =============================================================================
+#     for handler in logging.root.handlers[:]:
+#         logging.root.removeHandler(handler)
+#     logging.basicConfig(filename='EI_GPy.log',\
+#                         format='%(message)s',\
+#                         filemode='w', level=logging.DEBUG)
+# =============================================================================
+    logging.basicConfig(format='%(message)s', level=logging.DEBUG)
     
     # Initialize
     num = 5
