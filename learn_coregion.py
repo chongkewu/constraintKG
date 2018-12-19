@@ -27,7 +27,7 @@ def main():
     m = GPy.models.GPCoregionalizedRegression([X1,X1],[obj,cons],kernel=icm)
     #m['.*Mat32.var'].constrain_fixed(1.) #For this kernel, B.kappa encodes the variance now.
     m.optimize()
-
+    
     print(m.predict(X_prd,Y_metadata=noise_dict))
    
 def rosen_constraint(params):
