@@ -16,6 +16,7 @@ from scipy.stats import norm
 import time
 from paramz import ObsAr
 from pprint import pprint
+from functools import reduce
 
 def main(num=5,num_train=2,num_h=2,tau=3000,total=300,spl_num=10):
     # initial samples and discrete set A
@@ -23,16 +24,11 @@ def main(num=5,num_train=2,num_h=2,tau=3000,total=300,spl_num=10):
     X1,X_prd_f,noise_dict_f = init_x(X_prd,num_train,h=0)    
     X2,X_prd_c,noise_dict_c = init_x(X_prd,num_train,h=1)
     for i in range(total):  
-        print(i)            
-        obj = (rosen_constraint(X1)['f'][:,None])
-        cons = (rosen_constraint(X2)['c1'][:,None])        
-        K = GPy.kern.Matern52(input_dim=2, ARD = True)
-        icm = GPy.util.multioutput.ICM(input_dim=2,num_outputs=2,kernel=K)
-        m = GPy.models.GPCoregionalizedRegression([X1,X2],[obj,cons],kernel=icm)        
-        m['.*Mat52.var'].constrain_fixed(1.) #For this kernel, B.kappa encodes the variance now.        
-        m.optimize() 
-        m = m.copy()         
-        
+        print(i)      
+        m,obj,cons,icm = setup_model(X1,X2)        
+        ss = np.array(m.mixed_noise.likelihoods_list[0].variance)
+        print(ss)
+        return        
         # compute cKG    
         mean_prd_f,var_prd_f = m.predict(X_prd_f,Y_metadata=noise_dict_f)
         mean_prd_c,var_prd_c = m.predict(X_prd_c,Y_metadata=noise_dict_c)        
@@ -41,46 +37,44 @@ def main(num=5,num_train=2,num_h=2,tau=3000,total=300,spl_num=10):
         # get samples from c(x), sql_num=100, error=0.1;sql_num=1000;error=0.03      
         spl_set = m.posterior_samples(X_prd_c,size=spl_num,Y_metadata=noise_dict_c)        
         tic = time.time()
-        un_star = get_un_star(X1,X2,tau,m,icm,cons,obj,X_prd,\
-          X_prd_c,mean_prd_c,var_prd_c,noise_dict_c,num,spl_num=spl_num,spl_set=spl_set)                
+        un_star = get_un_star(X1,X2,tau,m,icm,cons,obj,X_prd,X_prd_c,mean_prd_c,\
+                              var_prd_c,noise_dict_c,num,spl_num=spl_num,spl_set=spl_set)                
         toc = time.time()        
         print('the total elapse time is',toc - tic)
         return
-        # compute En[Un+1*] 
-        
-        En_un_1_star_set = get_En_un_1_star(m,num_h,\
-          num,tau,X1,X2,obj,cons,X_prd,mean_prd_c,var_prd_c,\
-          X_prd_f,X_prd_c,noise_dict_f,noise_dict_c,icm)        
-        
+        # compute En[Un+1*]         
+        En_un_1_star_set = get_En_un_1_star(m,num_h,num,tau,X1,X2,obj,cons,\
+                                            X_prd,mean_prd_c,var_prd_c,X_prd_f,\
+                                            X_prd_c,noise_dict_f,noise_dict_c,icm)       
         # sample and update X1,obj or X2,cons
         cKG_set = En_un_1_star_set-un_star
         min_cKG = np.min(cKG_set)
-        ind = np.unravel_index(np.argmin(cKG_set, axis=None),\
-                               cKG_set.shape)
-        h_next = ind[0]
-        x_next = X_prd[ind[1]]
+        ind = np.unravel_index(np.argmin(cKG_set, axis=None),cKG_set.shape)
+        h_next,x_next = ind[0],X_prd[ind[1]]        
         print(x_next)
         if h_next == 0:
             X1 = np.vstack([X1,np.array([x_next])])
         else:
             X2 = np.vstack([X2,np.array([x_next])])
-        
+def setup_model(X1,X2):
+    obj = rosen_constraint(X1)['f'][:,None]
+    cons = rosen_constraint(X2)['c1'][:,None]                
+    K = GPy.kern.Matern52(input_dim=2, ARD = True)
+    icm = GPy.util.multioutput.ICM(input_dim=2,num_outputs=2,kernel=K)
+    m = GPy.models.GPCoregionalizedRegression([X1,X2],[obj,cons],kernel=icm)        
+    m['.*Mat52.var'].constrain_fixed(1.)        
+    m.optimize() 
+    m = m.copy()
+    return m,obj,cons,icm        
 def get_un_star(X1,X2,tau,m,icm,cons,obj,X_prd,X_prd_c,\
                 mean_prd_c,var_prd_c,noise_dict_c,num,spl_num,spl_set):
-     #compute un*
     Pr_feasible = -norm.cdf(0,loc=mean_prd_c,scale=np.sqrt(var_prd_c))+1
-        # get E_n{g(x)|x is feasible}
-    un_set = np.zeros((num,1))
-    
+    # get E_n{g(x)|x is feasible}
+    un_set = np.zeros((num,1))    
     for j in range(num):
-        obj_pos = 0
-        count = 0
+        obj_pos,count= 0,0
         for k in range(spl_num):
-            if spl_set[j][0][k]>=0:
-            # if c>0, update the model with it 
-            # CW: optimize the model here slow the program, 
-            # here we use the same parameter. Note: Here seems 
-            # only allow one GPCoregionalizedRegression object                    
+            if spl_set[j][0][k]>=0:# if c>0, update the model with it                 
                 X2_temp = np.vstack([X2,X_prd[j]])
                 cons_temp = np.vstack([cons,spl_set[j][0][k]])          
                 m_temp = update_model(m=m,X1=X1,X2=X2_temp,obj=obj,cons=cons_temp,kernel=icm)                
@@ -89,50 +83,44 @@ def get_un_star(X1,X2,tau,m,icm,cons,obj,X_prd,X_prd_c,\
                 X_prd_tp = np.hstack([X_temp,np.zeros_like(X_temp)[:,0][:,None]])                    
                 noise_dict_tp = {'output_index':X_prd_tp[:,2:].astype(int)}  
                 mean,var = m_temp.predict(X_prd_tp,Y_metadata=noise_dict_tp)                
-                obj_pos = obj_pos + mean
-                count = count + 1                
+                obj_pos += mean
+                count += 1                
         un_set[j] = tau
         if count > 0:
             E_n_condi = obj_pos/count
             un_set[j] = Pr_feasible[j][0]*E_n_condi+tau*(1-Pr_feasible[j][0])
     un_star = min(un_set)
-    return un_star      
-    
+    return un_star          
 def get_En_un_1_star(m,num_h,num,tau,X1,X2,obj,cons,X_prd,mean_prd_c,\
-     var_prd_c,X_prd_f,X_prd_c,noise_dict_f,noise_dict_c,icm):
+                     var_prd_c,X_prd_f,X_prd_c,noise_dict_f,noise_dict_c,icm):
     En_un_1_star_set = np.zeros((num_h,num))
     for h_pick in range(num_h):        
         num_k = 2
         if h_pick == 0:
-            Y_m = noise_dict_f
-            X_spl = X_prd_f
+            Y_m,X_spl = noise_dict_f,X_prd_f
         else:
-            Y_m = noise_dict_c
-            X_spl = X_prd_c                
+            Y_m,X_spl = noise_dict_c,X_prd_c        
         spl_set_En = m.posterior_samples(X_spl,size=num_k,Y_metadata=Y_m)
         for ind,spl_ind in enumerate(spl_set_En):                
-            un_1_star_sum = 0
-            count = 0
+            un_1_star_sum,count = 0,0            
             for Y_ind in spl_ind[0]:
                 x_next = X_spl[ind]
                 # update the model with x_next and Y_ind
                 if h_pick == 0 :
-                    X1_temp = np.vstack([X1,np.array([x_next[0:-1]])])
-                    X2_temp = X2
+                    X1_temp = np.vstack([X1,np.array([x_next[0:-1]])])                    
                     obj_temp = np.vstack([obj,Y_ind])
-                    cons_temp = cons                        
+                    X2_temp,cons_temp = X2,cons                        
                 else:
-                    X1_temp = X1
-                    X2_temp = np.vstack([X2,np.array([x_next[0:-1]])])
-                    obj_temp = obj
+                    X1_temp,obj_temp = X1,obj
+                    X2_temp = np.vstack([X2,np.array([x_next[0:-1]])])                    
                     cons_temp = np.vstack([cons,Y_ind])
                 m_temp = update_model(m=m,X1=X1_temp,X2=X2_temp,obj=obj_temp,cons=cons_temp,kernel=icm)                
                 # compute the un+1*
                 un_1_star = get_un_star(X1_temp,X2_temp,tau,m_temp\
                 ,icm,cons_temp,obj_temp,X_prd,X_prd_c,mean_prd_c,\
                 var_prd_c,noise_dict_c,num,spl_num = num_k,spl_set=spl_set_En)                
-                un_1_star_sum = un_1_star_sum + un_1_star
-                count = count + 1
+                un_1_star_sum += un_1_star
+                count += 1
             # average the un+1* in spl_set 
             En_un_1_star = un_1_star_sum/count
             En_un_1_star_set[h_pick][ind] = En_un_1_star
@@ -161,11 +149,37 @@ def predict_raw(m,pred_var,Xnew,Y,K_inv,fullcov=False):
     temp1 = np.matmul(K_inv,Kx)    
     if fullcov == True:
         Kxnew = m.kern.K(Xnew)
-        var = Kxnew -np.matmul(Kxnew,temp1)
+        var = Kxnew -np.matmul(Kx.T,temp1)
     else:
         Kxnew = m.kern.Kdiag(Xnew)
         var = np.array([Kxnew - np.sum(Kx.T*temp1.T,axis = 1)]).T
     return mu,var
+def predict_mixed_noise(m, mu, var, full_cov=False, Y_metadata=None):
+        ind = Y_metadata['output_index'].flatten()
+        _variance = np.array([m.mixed_noise.likelihoods_list[j].variance for j in ind ])
+        if full_cov:
+            var += np.eye(var.shape[0])*_variance
+        else:
+            var += _variance
+        return mu, var
+def woodbury_inv(P_inv,Q,R,S):
+    """
+    We use the update formla in Book ML(RW2006) Page 219 equation A.12:
+    A =  ||  A_inv = 
+    P Q  ||  P1 Q1  
+    R S  ||  R1 S1   
+    """
+    if S.shape[0] == 1:
+        M = 1/(S - reduce(np.matmul,[R,P_inv,Q]))
+    else:
+        M = np.linalg.inv(S - reduce(np.matmul,[R,P_inv,Q]))
+    P1 = P_inv + reduce(np.matmul,[P_inv,Q,M,R,P_inv])
+    Q1 = -reduce(np.matmul,[P_inv,Q,M])
+    R1 = -reduce(np.matmul,[M,R,P_inv])
+    S1 = M
+    tmp1,tmp2 = map(np.hstack,[[P1,Q1],[R1,S1]])
+    A_inv = np.vstack([tmp1,tmp2])
+    return A_inv
 def rosen_constraint(params):
   x1 = params[:,0]
   x2 = params[:,1]
