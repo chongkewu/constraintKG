@@ -15,6 +15,8 @@ import numpy.testing as npt
 from paramz import ObsAr
 from numpy.linalg import inv
 from GPy.util.linalg import dtrtrs
+import time
+
 class Test_predict(unittest.TestCase):
     def setUp(self):
         print('setUp Model...')
@@ -87,23 +89,34 @@ class Test_predict(unittest.TestCase):
         
         print('tearDown')
 class Test_woodbury_inv(unittest.TestCase):
-    def test_woodbury_inv(self):
-        matrixSize = 5
+    def setUp(self):
+        matrixSize = 500
         A = np.random.rand(matrixSize,matrixSize)
-        B_plus = np.matmul(A,A.T)+0.001*np.eye(matrixSize)
-        self.assertTrue(np.all(np.linalg.eigvals(B_plus) > 0))
+        B_plus = np.matmul(A,A.T)+0.001*np.eye(matrixSize)    
         B = B_plus[0:-1,0:-1]       
         C = np.array([B_plus[-1,0:-1]])
         D = np.array([[B_plus[-1,-1]]])        
         B_t = np.hstack(map(np.vstack,[[B,C],[C.T,D]]))
-        npt.assert_array_equal(B_t,B_plus)
-        self.assertTrue(np.all(np.linalg.eigvals(B) > 0))
-
-def main():
-    pass
-    
-            
-        
+        npt.assert_array_equal(B_t,B_plus)        
+        B_inv = np.linalg.inv(B)
+        npt.assert_array_almost_equal(np.matmul(B,B_inv),np.eye(matrixSize-1))
+        self.matrixSize,self.B,self.B_plus,self.C,self.D,self.B_inv = matrixSize,B,B_plus,C,D,B_inv        
+    def test_woodbury_inv_setup(self):
+        self.assertTrue(np.all(np.linalg.eigvals(self.B_plus) > 0))
+        self.assertTrue(np.all(np.linalg.eigvals(self.B) > 0))        
+    def test_woodbury_inv(self):    
+        B_plus_inv = woodbury_inv(self.B_inv,self.C.T,self.C,self.D)
+        npt.assert_array_almost_equal(np.matmul(B_plus_inv,self.B_plus),np.eye(self.matrixSize))
+    def test_woodbury_inv_speed(self):
+        num = 3
+        tic = time.time()           
+        for i in range(num):
+            B_plus_inv1 = np.linalg.inv(self.B_plus)
+        toc = time.time()
+        for i in range(num):        
+            B_plus_inv = woodbury_inv(self.B_inv,self.C.T,self.C,self.D)
+        toc1 = time.time()
+        npt.assert_array_almost_equal(B_plus_inv,B_plus_inv1,decimal = 4)
+        self.assertLess(toc1-toc,toc - tic)
 if __name__ == '__main__':
-    #main()
     unittest.main()

@@ -18,7 +18,7 @@ from paramz import ObsAr
 from pprint import pprint
 from functools import reduce
 
-def main(num=5,num_train=2,num_h=2,tau=3000,total=300,spl_num=10):
+def main(num=1000,num_train=2,num_h=2,tau=3000,total=300,spl_num=10):
     # initial samples and discrete set A
     X_prd = lhs(2,samples = num)*4-2
     X1,X_prd_f,noise_dict_f = init_x(X_prd,num_train,h=0)    
@@ -26,15 +26,13 @@ def main(num=5,num_train=2,num_h=2,tau=3000,total=300,spl_num=10):
     for i in range(total):  
         print(i)      
         m,obj,cons,icm = setup_model(X1,X2)        
-        ss = np.array(m.mixed_noise.likelihoods_list[0].variance)
-        print(ss)
-        return        
+        #ss = np.array(m.mixed_noise.likelihoods_list[0].variance)        
         # compute cKG    
         mean_prd_f,var_prd_f = m.predict(X_prd_f,Y_metadata=noise_dict_f)
         mean_prd_c,var_prd_c = m.predict(X_prd_c,Y_metadata=noise_dict_c)        
         x_next = np.array([[2,2,0]])
         #print(m.ICM.K(X_prd_c,x_next))        
-        # get samples from c(x), sql_num=100, error=0.1;sql_num=1000;error=0.03      
+        # get samples from c(x), spl_num=100, error=0.1;spl_num=1000;error=0.03      
         spl_set = m.posterior_samples(X_prd_c,size=spl_num,Y_metadata=noise_dict_c)        
         tic = time.time()
         un_star = get_un_star(X1,X2,tau,m,icm,cons,obj,X_prd,X_prd_c,mean_prd_c,\
@@ -162,23 +160,44 @@ def predict_mixed_noise(m, mu, var, full_cov=False, Y_metadata=None):
         else:
             var += _variance
         return mu, var
-def woodbury_inv(P_inv,Q,R,S):
+def woodbury_inv_origin(P_inv,Q,R,S):
     """
     We use the update formla in Book ML(RW2006) Page 219 equation A.12:
     A =  ||  A_inv = 
     P Q  ||  P1 Q1  
     R S  ||  R1 S1   
     """
+    R_P_inv = np.matmul(R,P_inv)
+    P_inv_Q = np.matmul(P_inv,Q)
     if S.shape[0] == 1:
-        M = 1/(S - reduce(np.matmul,[R,P_inv,Q]))
+        M = 1/(S - np.matmul(R_P_inv,Q))
     else:
-        M = np.linalg.inv(S - reduce(np.matmul,[R,P_inv,Q]))
-    P1 = P_inv + reduce(np.matmul,[P_inv,Q,M,R,P_inv])
-    Q1 = -reduce(np.matmul,[P_inv,Q,M])
-    R1 = -reduce(np.matmul,[M,R,P_inv])
+        M = np.linalg.inv(S - np.matmul(R_P_inv,Q))
+    P1 = P_inv + reduce(np.matmul,[P_inv_Q,M,R_P_inv])
+    Q1 = -np.matmul(P_inv_Q,M)
+    R1 = -np.matmul(M,R_P_inv)
     S1 = M
     tmp1,tmp2 = map(np.hstack,[[P1,Q1],[R1,S1]])
     A_inv = np.vstack([tmp1,tmp2])
+    return A_inv
+def woodbury_inv(P_inv,Q,R,S):
+    """
+    We use the update formla in Book ML(RW2006) Page 219 equation A.12:
+    A =  ||  A_inv = 
+    P Q  ||  P1 Q1  
+    R S  ||  R1 S1   
+    Here S dim is 1 and R = Q.T
+    """
+    matrixSize = P_inv.shape[0]+1
+    A_inv = np.zeros([matrixSize,matrixSize])
+    R_P_inv = np.matmul(R,P_inv)
+    P_inv_Q = R_P_inv.T
+    M = 1/(S - np.matmul(R_P_inv,Q))
+    A_inv[-1,-1] = M
+    A_inv[0:-1,0:-1] = P_inv + reduce(np.matmul,[P_inv_Q,M,R_P_inv])
+    tmp = np.matmul(P_inv_Q,M)[:,0]
+    A_inv[0:-1,-1] = -tmp
+    A_inv[-1,0:-1] = -tmp.T    
     return A_inv
 def rosen_constraint(params):
   x1 = params[:,0]
