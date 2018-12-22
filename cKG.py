@@ -63,7 +63,8 @@ def setup_model(X1,X2):
     m['.*Mat52.var'].constrain_fixed(1.)        
     m.optimize() 
     m = m.copy()
-    return m,obj,cons,icm        
+    return m,obj,cons,icm   
+     
 def get_un_star(X1,X2,tau,m,icm,cons,obj,X_prd,X_prd_c,\
                 mean_prd_c,var_prd_c,noise_dict_c,num,spl_num,spl_set):
     Pr_feasible = -norm.cdf(0,loc=mean_prd_c,scale=np.sqrt(var_prd_c))+1
@@ -76,7 +77,6 @@ def get_un_star(X1,X2,tau,m,icm,cons,obj,X_prd,X_prd_c,\
                 X2_temp = np.vstack([X2,X_prd[j]])
                 cons_temp = np.vstack([cons,spl_set[j][0][k]])          
                 m_temp = update_model(m=m,X1=X1,X2=X2_temp,obj=obj,cons=cons_temp,kernel=icm)                
-                return
                 X_temp = np.array([X_prd[j]])                
                 X_prd_tp = np.hstack([X_temp,np.zeros_like(X_temp)[:,0][:,None]])                    
                 noise_dict_tp = {'output_index':X_prd_tp[:,2:].astype(int)}  
@@ -130,6 +130,12 @@ def update_model(m,X1,X2,obj,cons,kernel):
     m_temp.mixed_noise.Gaussian_noise_0.variance = v1
     m_temp.mixed_noise.Gaussian_noise_1.variance = v2    
     return m_temp
+def add_col(X,num=0):
+    if num == 0:
+        X = np.hstack([X,np.zeros_like(X)[:,0][:,None]])
+    else:
+        X = np.hstack([X,np.ones_like(X)[:,0][:,None]])
+    return X
 def init_x(X_prd,num_train,h):
     X = X_prd[0:num_train,:]     
     # prediction need to add extra colloum to X_prd to select predicted function 

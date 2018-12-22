@@ -10,13 +10,23 @@ import unittest
 import GPy
 import numpy as np
 from pprint import pprint
-from cKG import predict_raw,init_x,rosen_constraint,predict_mixed_noise,woodbury_inv
+from cKG import *
+from pyDOE import *
 import numpy.testing as npt
 from paramz import ObsAr
 from numpy.linalg import inv
 from GPy.util.linalg import dtrtrs
 import time
+from scipy.stats import norm
 
+class Test_get_un_star(unittest.TestCase):
+    def setUp(self):
+        pass
+    def test_get_un_star(self):
+        pass
+    def tearDown(self):
+        pass
+    
 class Test_predict(unittest.TestCase):
     def setUp(self):
         print('setUp Model...')
@@ -118,5 +128,77 @@ class Test_woodbury_inv(unittest.TestCase):
         toc1 = time.time()
         npt.assert_array_almost_equal(B_plus_inv,B_plus_inv1,decimal = 4)
         self.assertLess(toc1-toc,toc - tic)
+        
+class Eval_f():
+    pass
+
+class SampleParams(object):
+    def __init__(self,num,tau,spl_num,num_train):
+        self.num = num
+        self.tau = tau
+        self.spl_num = spl_num
+        self.num_train = num_train
+        self.X_prd = lhs(2,samples = num)*4-2
+    def update(self,m,fD):
+        K = m.posterior._K
+        self.K_inv = inv(K) 
+        self.Y = np.vstack([self.obj,self.cons])
+        self.X_prd_all = np.vstack([fD['f'].X_prd,fD['c1'].X_prd])  
+        self.pred_var = ObsAr(np.vstack([add_col(fD['f'].X,0),add_col(fD['c1'].X,1)]))
+
+            
+def init_x1(X_prd,num_train,h):
+    X = X_prd[0:num_train,:]     
+    # prediction need to add extra colloum to X_prd to select predicted function 
+    if h == 'f':
+        X_prd = np.hstack([X_prd,np.zeros_like(X_prd)[:,0][:,None]])
+    else:
+        X_prd = np.hstack([X_prd,np.ones_like(X_prd)[:,0][:,None]])    
+    noise_dict = {'output_index':X_prd[:,2:].astype(int)} 
+    return X,X_prd,noise_dict
+
+def main(num=100,num_train=50,num_h=2,tau=3000,total=300,spl_num=10):
+    myPara = SampleParams(num,tau,spl_num,num_train)
+    fD={'f': None, 'c1': None}
+    for k in fD.keys():
+        fD[k] = Eval_f()
+        fD[k].X,fD[k].X_prd,fD[k].noise_dict = init_x1(myPara.X_prd,num_train,h=k)    
+    m,myPara.obj,myPara.cons,icm = setup_model(fD['f'].X,fD['c1'].X)
+    for k in fD.keys():
+        fD[k].mean_prd,fD[k].var_prd = m.predict(fD[k].X_prd,Y_metadata=fD[k].noise_dict)
+    spl_set = m.posterior_samples(fD['c1'].X_prd,size=spl_num,Y_metadata=fD['c1'].noise_dict)
+    myPara.update(m,fD)
+    tic = time.time()
+    get_un_star1(fD,myPara,m,icm,spl_set)
+    toc = time.time()
+    print('the elapse time:',toc-tic)             
+    return  
+def get_un_star1(fD,myPara,m,icm,spl_set): 
+    Pr_feasible = -norm.cdf(0,loc=fD['c1'].mean_prd,scale=np.sqrt(fD['c1'].var_prd))+1
+    # get E_n{g(x)|x is feasible}
+    un_set = np.zeros((myPara.num,1))    
+    for j in range(myPara.num):
+        obj_pos,count= 0,0
+        spl_x = np.array([myPara.X_prd[j]])
+        spl_x1 = add_col(spl_x)
+        for k in range(myPara.spl_num):
+            spl_c = spl_set[j][0][k]
+            Y = np.vstack([myPara.Y,spl_c])        
+            if spl_c>=0:# if c>0, update the model with it
+                Kx = m.kern.K(myPara.pred_var,spl_x1)
+                pred_var = np.vstack([myPara.pred_var,spl_x1])
+                K_plus_inv = woodbury_inv(myPara.K_inv,Kx,Kx.T,np.array([[spl_c]]))
+                
+                mean,var = predict_raw(m,pred_var,spl_x1,Y,K_plus_inv,fullcov=False)
+                mean,var = predict_mixed_noise(m, mean, var, full_cov=False, Y_metadata={'output_index':np.array([[1]])})                
+                obj_pos += mean
+                count += 1                
+        un_set[j] = myPara.tau
+        if count > 0:
+            E_n_condi = obj_pos/count
+            un_set[j] = Pr_feasible[j][0]*E_n_condi+myPara.tau*(1-Pr_feasible[j][0])
+    un_star = min(un_set)
+    return un_star 
 if __name__ == '__main__':
-    unittest.main()
+    main()
+    #unittest.main()
