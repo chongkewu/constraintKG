@@ -17,43 +17,36 @@ import time
 from paramz import ObsAr
 from pprint import pprint
 from functools import reduce
+from numpy.linalg import inv,eig
+from copy import copy
 
-def main(num=1000,num_train=2,num_h=2,tau=3000,total=300,spl_num=10):
-    # initial samples and discrete set A
-    X_prd = lhs(2,samples = num)*4-2
-    X1,X_prd_f,noise_dict_f = init_x(X_prd,num_train,h=0)    
-    X2,X_prd_c,noise_dict_c = init_x(X_prd,num_train,h=1)
-    for i in range(total):  
-        print(i)      
-        m,obj,cons,icm = setup_model(X1,X2)        
-        #ss = np.array(m.mixed_noise.likelihoods_list[0].variance)        
-        # compute cKG    
-        mean_prd_f,var_prd_f = m.predict(X_prd_f,Y_metadata=noise_dict_f)
-        mean_prd_c,var_prd_c = m.predict(X_prd_c,Y_metadata=noise_dict_c)        
-        x_next = np.array([[2,2,0]])
-        #print(m.ICM.K(X_prd_c,x_next))        
-        # get samples from c(x), spl_num=100, error=0.1;spl_num=1000;error=0.03      
-        spl_set = m.posterior_samples(X_prd_c,size=spl_num,Y_metadata=noise_dict_c)        
-        tic = time.time()
-        un_star = get_un_star(X1,X2,tau,m,icm,cons,obj,X_prd,X_prd_c,mean_prd_c,\
-                              var_prd_c,noise_dict_c,num,spl_num=spl_num,spl_set=spl_set)                
-        toc = time.time()        
-        print('the total elapse time is',toc - tic)
-        return
-        # compute En[Un+1*]         
-        En_un_1_star_set = get_En_un_1_star(m,num_h,num,tau,X1,X2,obj,cons,\
-                                            X_prd,mean_prd_c,var_prd_c,X_prd_f,\
-                                            X_prd_c,noise_dict_f,noise_dict_c,icm)       
-        # sample and update X1,obj or X2,cons
-        cKG_set = En_un_1_star_set-un_star
-        min_cKG = np.min(cKG_set)
-        ind = np.unravel_index(np.argmin(cKG_set, axis=None),cKG_set.shape)
-        h_next,x_next = ind[0],X_prd[ind[1]]        
-        print(x_next)
-        if h_next == 0:
-            X1 = np.vstack([X1,np.array([x_next])])
-        else:
-            X2 = np.vstack([X2,np.array([x_next])])
+def main(num=5, num_train=2, num_h=2, tau=3000, total=300, spl_num=5):
+    myPara = SampleParams(num, tau, num_h, spl_num, num_train)
+    fD = {'f': None, 'c1': None}    
+    for k in fD.keys():
+        fD[k] = Eval_f()
+        fD[k].X,fD[k].X_prd, fD[k].noise_dict = init_x(myPara.X_prd, num_train, h=k)
+    for i in range(total):    
+        m, myPara.obj, myPara.cons, icm = setup_model(fD['f'].X, fD['c1'].X)                
+        for k in fD.keys():
+            fD[k].mean_prd, fD[k].var_prd = m.predict(fD[k].X_prd, Y_metadata=fD[k].noise_dict)
+        spl_set = m.posterior_samples(fD['c1'].X_prd, size=spl_num, Y_metadata=fD['c1'].noise_dict)
+        
+        myPara.update(m, fD)
+        
+        un_star = get_un_star(fD, myPara, m, icm, spl_set)
+    
+        En_un_1_set = get_En_un_1_star(fD, myPara, m, icm, num_k=5)        
+        fD = min_cKG(m, fD, myPara, En_un_1_set)
+
+def check_cov(m,fD):
+    spl_x1 = np.array([[2,2,0]])
+    cov = m.kern.K(fD['f'].X_prd,spl_x1)
+    ss = sum(abs(cov) >= 0.001)
+    print(cov)
+    print(ss)    
+    return
+
 def setup_model(X1,X2):
     obj = rosen_constraint(X1)['f'][:,None]
     cons = rosen_constraint(X2)['c1'][:,None]                
@@ -64,65 +57,123 @@ def setup_model(X1,X2):
     m.optimize() 
     m = m.copy()
     return m,obj,cons,icm   
+
+def min_cKG(m, fD, myPara, En_un_1_set):
+    min_cKG = 2*myPara.tau        
+    for ea in fD.keys():
+        En_set = En_un_1_set[ea].val
+        min_val = min(En_set)
+        ind = np.unravel_index(np.argmin(En_set, axis=None),En_set.shape)            
+
+        if min_val <= min_cKG:            
+            min_cKG = min_val
+            min_ind = ind
+            min_task = ea                            
+            print(ea,min_cKG)
+
+    try:
+        spl_pt = np.array([fD[min_task].X_prd[min_ind[0]]])            
+    except:
+        raise UnboundLocalError('the cKG computation fails')
+    fD[min_task].X = np.vstack([fD[min_task].X,spl_pt[:,0:-1]])
+
+    print(fD['f'].X.shape,fD['c1'].X.shape)
+    return fD
      
-def get_un_star(X1,X2,tau,m,icm,cons,obj,X_prd,X_prd_c,\
-                mean_prd_c,var_prd_c,noise_dict_c,num,spl_num,spl_set):
-    Pr_feasible = -norm.cdf(0,loc=mean_prd_c,scale=np.sqrt(var_prd_c))+1
+def get_un_star(fD, myPara, m, icm, spl_set): 
+    Pr_feasible = -norm.cdf(0, loc=fD['c1'].mean_prd, scale=np.sqrt(fD['c1'].var_prd))+1
     # get E_n{g(x)|x is feasible}
-    un_set = np.zeros((num,1))    
-    for j in range(num):
-        obj_pos,count= 0,0
-        for k in range(spl_num):
-            if spl_set[j][0][k]>=0:# if c>0, update the model with it                 
-                X2_temp = np.vstack([X2,X_prd[j]])
-                cons_temp = np.vstack([cons,spl_set[j][0][k]])          
-                m_temp = update_model(m=m,X1=X1,X2=X2_temp,obj=obj,cons=cons_temp,kernel=icm)                
-                X_temp = np.array([X_prd[j]])                
-                X_prd_tp = np.hstack([X_temp,np.zeros_like(X_temp)[:,0][:,None]])                    
-                noise_dict_tp = {'output_index':X_prd_tp[:,2:].astype(int)}  
-                mean,var = m_temp.predict(X_prd_tp,Y_metadata=noise_dict_tp)                
+    un_set = np.zeros((myPara.num, 1))   
+    
+    for j in range(myPara.num):
+        obj_pos, count= 0, 0
+        spl_x = np.array([myPara.X_prd[j]])
+        spl_x1 = add_col(spl_x,0)
+        
+        for k in range(myPara.spl_num):
+            spl_c = spl_set[j][0][k]
+            Y = np.vstack([myPara.Y, spl_c])
+            
+            if spl_c>=0:# if c>0, update the model with it
+                Kx = m.kern.K(myPara.pred_var, spl_x1)
+                pred_var = np.vstack([myPara.pred_var, spl_x1])
+                K_plus_inv = woodbury_inv(myPara.K_inv, Kx, Kx.T, np.array([[spl_c]]))
+                
+                mean, var = predict_raw(m, pred_var, spl_x1, Y, K_plus_inv, fullcov=False)
+                mean, var = predict_mixed_noise(m, mean, var, full_cov=False, Y_metadata={'output_index':np.array([[0]])})                
                 obj_pos += mean
-                count += 1                
-        un_set[j] = tau
+                count += 1
+                
+        un_set[j] = myPara.tau
+        
         if count > 0:
             E_n_condi = obj_pos/count
-            un_set[j] = Pr_feasible[j][0]*E_n_condi+tau*(1-Pr_feasible[j][0])
+            un_set[j] = Pr_feasible[j][0] * E_n_condi+myPara.tau * (1-Pr_feasible[j][0])
+            
     un_star = min(un_set)
-    return un_star          
-def get_En_un_1_star(m,num_h,num,tau,X1,X2,obj,cons,X_prd,mean_prd_c,\
-                     var_prd_c,X_prd_f,X_prd_c,noise_dict_f,noise_dict_c,icm):
-    En_un_1_star_set = np.zeros((num_h,num))
-    for h_pick in range(num_h):        
-        num_k = 2
-        if h_pick == 0:
-            Y_m,X_spl = noise_dict_f,X_prd_f
-        else:
-            Y_m,X_spl = noise_dict_c,X_prd_c        
-        spl_set_En = m.posterior_samples(X_spl,size=num_k,Y_metadata=Y_m)
+    return un_star 
+def get_En_un_1_star(fD, myPara, m, icm, num_k=5):
+    En_un_1_set = {'f':None, 'c1':None}
+    for ea in fD.keys():        
+        En_un_1_set[ea] = Eval_f()
+        En_un_1_set[ea].val = np.zeros((myPara.num,1))        
+        Y_m, X_spl = fD[ea].noise_dict, fD[ea].X_prd
+        spl_set_En = m.posterior_samples(X_spl,size=num_k,Y_metadata=Y_m)        
+        
+        myPara1 = copy(myPara)
+        myPara1.spl_num = num_k
+        fD1 = copy(fD)
         for ind,spl_ind in enumerate(spl_set_En):                
+            print(ind)
             un_1_star_sum,count = 0,0            
+            spl_x1 = np.array([X_spl[ind]])                        
+            Kx = m.kern.K(myPara.pred_var, spl_x1)
+            myPara1.pred_var = np.vstack([myPara.pred_var, spl_x1])
             for Y_ind in spl_ind[0]:
-                x_next = X_spl[ind]
-                # update the model with x_next and Y_ind
-                if h_pick == 0 :
-                    X1_temp = np.vstack([X1,np.array([x_next[0:-1]])])                    
-                    obj_temp = np.vstack([obj,Y_ind])
-                    X2_temp,cons_temp = X2,cons                        
-                else:
-                    X1_temp,obj_temp = X1,obj
-                    X2_temp = np.vstack([X2,np.array([x_next[0:-1]])])                    
-                    cons_temp = np.vstack([cons,Y_ind])
-                m_temp = update_model(m=m,X1=X1_temp,X2=X2_temp,obj=obj_temp,cons=cons_temp,kernel=icm)                
+                myPara1.Y = np.vstack([myPara.Y, Y_ind])                
+                myPara1.K_inv = woodbury_inv(myPara.K_inv, Kx, Kx.T, np.array([[Y_ind]]))                
+                for ea1 in fD1.keys():
+                    mean, var = predict_raw(m, myPara1.pred_var, fD[ea1].X_prd, myPara1.Y, myPara1.K_inv, fullcov=False)                    
+                    fD1[ea1].mean_prd, fD1[ea1].var_prd = predict_mixed_noise(m, mean, var, full_cov=False, Y_metadata=fD[ea1].noise_dict)                    
                 # compute the un+1*
-                un_1_star = get_un_star(X1_temp,X2_temp,tau,m_temp\
-                ,icm,cons_temp,obj_temp,X_prd,X_prd_c,mean_prd_c,\
-                var_prd_c,noise_dict_c,num,spl_num = num_k,spl_set=spl_set_En)                
+                un_1_star = get_un_star(fD1, myPara1, m, icm, spl_set_En)
                 un_1_star_sum += un_1_star
                 count += 1
-            # average the un+1* in spl_set 
-            En_un_1_star = un_1_star_sum/count
-            En_un_1_star_set[h_pick][ind] = En_un_1_star
-    return En_un_1_star_set
+            # average the un+1* in spl_set             
+            En_un_1_star = un_1_star_sum/count        
+            En_un_1_set[ea].val[ind] = En_un_1_star            
+    return En_un_1_set
+class Eval_f():
+    pass
+
+class SampleParams(object):
+    def __init__(self,num,tau,num_h,spl_num,num_train):
+        self.num = num
+        self.tau = tau
+        self.num_h = num_h
+        self.spl_num = spl_num
+        self.num_train = num_train
+        self.X_prd = lhs(2,samples = num)*4-2
+    def update(self, m, fD):
+        K = m.posterior._K
+        try:
+            self.K_inv = inv(K)     
+        except:
+            num = 6
+            for i in range(num):
+                K = K + 10**(i)*1e-6 * np.eye(K.shape[0])
+                try:
+                    self.K_inv = inv(K)
+                    break
+                except:
+                    pass                                
+            if i == num:
+                w,_ = eig(K)
+                print('Inverse K is faile, eigenvalue is:',w)        
+        self.Y = np.vstack([self.obj,self.cons])
+        self.X_prd_all = np.vstack([fD['f'].X_prd,fD['c1'].X_prd])  
+        self.pred_var = ObsAr(np.vstack([add_col(fD['f'].X,0),add_col(fD['c1'].X,1)]))
+        
 def update_model(m,X1,X2,obj,cons,kernel):
     v1 = m.mixed_noise.Gaussian_noise_0.variance 
     v2 = m.mixed_noise.Gaussian_noise_1.variance                                
@@ -139,12 +190,13 @@ def add_col(X,num=0):
 def init_x(X_prd,num_train,h):
     X = X_prd[0:num_train,:]     
     # prediction need to add extra colloum to X_prd to select predicted function 
-    if h == 0:
+    if h == 'f':
         X_prd = np.hstack([X_prd,np.zeros_like(X_prd)[:,0][:,None]])
     else:
         X_prd = np.hstack([X_prd,np.ones_like(X_prd)[:,0][:,None]])    
     noise_dict = {'output_index':X_prd[:,2:].astype(int)} 
     return X,X_prd,noise_dict
+
 def predict_raw(m,pred_var,Xnew,Y,K_inv,fullcov=False):
     Kx = m.kern.K(pred_var,Xnew)
     temp = np.matmul(K_inv,Y)
@@ -158,6 +210,7 @@ def predict_raw(m,pred_var,Xnew,Y,K_inv,fullcov=False):
         Kxnew = m.kern.Kdiag(Xnew)
         var = np.array([Kxnew - np.sum(Kx.T*temp1.T,axis = 1)]).T
     return mu,var
+
 def predict_mixed_noise(m, mu, var, full_cov=False, Y_metadata=None):
         ind = Y_metadata['output_index'].flatten()
         _variance = np.array([m.mixed_noise.likelihoods_list[j].variance for j in ind ])
