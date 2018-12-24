@@ -131,8 +131,37 @@ class Test_woodbury_inv(unittest.TestCase):
         toc1 = time.time()
         npt.assert_array_almost_equal(B_plus_inv,B_plus_inv1,decimal = 4)
         self.assertLess(toc1-toc,toc - tic)
-
+        
+def main(num=150, num_train=80, num_h=2, tau=3000, total=300, spl_num=5):
+    myPara = SampleParams(num, tau, num_h, spl_num, num_train)
+    fD = {'f': None, 'c1': None}    
+    for k in fD.keys():
+        fD[k] = Eval_f()
+        fD[k].X,fD[k].X_prd, fD[k].noise_dict = init_x(myPara.X_prd, num_train, h=k)
+    
+    m, myPara.obj, myPara.cons, icm = setup_model1(fD['f'].X, fD['c1'].X)                
+    for k in fD.keys():
+        fD[k].mean_prd, fD[k].var_prd = m.predict(fD[k].X_prd, Y_metadata=fD[k].noise_dict)        
+    myPara.update(m, fD)  
+    
+    obj = rosen_constraint(fD['f'].X_prd[:,0:-1])['f'][:,None]
+    print(obj-fD['f'].mean_prd)
+    print(m.ICM.Mat52.lengthscale)
+    print(m.ICM.B.B)
+    #check_cov(m, fD, 'c1', [2,2,0])
+    return
+def setup_model1(X1,X2):
+    obj = rosen_constraint(X1)['f'][:,None]
+    cons = rosen_constraint(X2)['c1'][:,None]                
+    K = GPy.kern.Matern52(input_dim=2, ARD = True)
+    icm = GPy.util.multioutput.ICM(input_dim=2,num_outputs=2,kernel=K)
+    m = GPy.models.GPCoregionalizedRegression([X1,X2],[obj,cons],kernel=icm)        
+    m['.*Mat52.var'].constrain_fixed(1.)        
+    #m['.*Mat52.len'].constrain_fixed(.5)        
+    m.optimize() 
+    m = m.copy()
+    return m,obj,cons,icm   
 
 if __name__ == '__main__':
-    #main()
-    unittest.main()
+    main()
+    #unittest.main()
