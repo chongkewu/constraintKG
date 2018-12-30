@@ -6,6 +6,8 @@ This file is learn to use GPy package
 """
 import GPy
 import numpy as np
+from pyDOE import*
+from pprint import pprint
 
 def learn_model_basic():
     kernel = GPy.kern.RBF(input_dim=1, variance=1, lengthscale=1)
@@ -32,6 +34,6 @@ def learn_model_basic():
     X_S = np.arange(0,5,0.3)
     X_S = X_S.reshape(X_S.size,1)
     #print(m.predict(X_S))
-    
+
 if __name__ == "__main__":
     learn_model_basic()
