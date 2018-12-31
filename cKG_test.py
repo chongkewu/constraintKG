@@ -23,9 +23,22 @@ import matplotlib.pyplot as plt
 from scipy import stats
 
 class Test_get_un_star(unittest.TestCase):
-    def setUp(self):
+    def setUp(self):        
         pass
-    def test_get_un_star(self):
+    def test_init(self,num=1000, num_train=5, num_h=2, tau=3000, total=300, spl_num=10):        
+        myPara, fD = init_Para_fD(num, tau, num_h, spl_num, num_train)
+        npt.assert_array_equal(myPara.X_prd[0:num_train,:],fD['c1'].X)
+        npt.assert_array_equal(myPara.X_prd[0:num_train,:],fD['f'].X)
+        m, myPara, icm = setup_model(fD['f'].X, fD['c1'].X, myPara)               
+        for k in fD.keys():
+            fD[k].mean_prd, fD[k].var_prd = m.predict(fD[k].X_prd, Y_metadata=fD[k].noise_dict)        
+            fD[k].var_prd = fD[k].var_prd.clip(min=0)
+        myPara.update(m, fD)            
+        spl_set = CRN_gen(fD, 'c1', spl_num) 
+        self.assertEqual(spl_set.shape[0], num)
+        self.assertEqual(spl_set.shape[2],spl_num)
+        
+    def test_get_un_star(self):       
         pass
     def tearDown(self):
         pass
