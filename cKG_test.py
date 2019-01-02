@@ -25,7 +25,7 @@ from scipy import stats
 class Test_get_un_star(unittest.TestCase):
     def setUp(self):        
         pass
-    def test_init(self,num=1000, num_train=5, num_h=2, tau=3000, total=300, spl_num=10):        
+    def test_init(self,num=1000, num_train=80, num_h=2, tau=3000, total=300, spl_num=10):        
         myPara, fD = init_Para_fD(num, tau, num_h, spl_num, num_train)
         npt.assert_array_equal(myPara.X_prd[0:num_train,:],fD['c1'].X)
         npt.assert_array_equal(myPara.X_prd[0:num_train,:],fD['f'].X)
@@ -33,7 +33,11 @@ class Test_get_un_star(unittest.TestCase):
         for k in fD.keys():
             fD[k].mean_prd, fD[k].var_prd = m.predict(fD[k].X_prd, Y_metadata=fD[k].noise_dict)        
             fD[k].var_prd = fD[k].var_prd.clip(min=0)
-        myPara.update(m, fD)            
+        myPara.update(m, fD)     
+        K = m.posterior._K
+        Prod = K @ myPara.K_inv
+        #print(np.max(np.abs(Prod-np.eye(2*num_train))))
+        npt.assert_array_almost_equal(Prod,np.eye(2*num_train),decimal = 0)
         spl_set = CRN_gen(fD, 'c1', spl_num) 
         self.assertEqual(spl_set.shape[0], num)
         self.assertEqual(spl_set.shape[2],spl_num)
