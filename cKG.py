@@ -22,7 +22,7 @@ from copy import copy
 import logging
 
 def main(num=1000, num_train=10, num_h=2, tau=3000, total=300, spl_num=10, num_k=5):
-    np.set_printoptions(linewidth = 120)
+    np.set_printoptions(linewidth = 150)
     logger = logging.getLogger('main.cKG')
     logger.info('cKG begins at num = %s, num_train = %s, num_h = %s, '
                  'tau = %s, total = %s, spl_num = %s, num_k = %s \n'
@@ -35,7 +35,7 @@ def main(num=1000, num_train=10, num_h=2, tau=3000, total=300, spl_num=10, num_k
         logger.info('Number of sampled points: %s', myPara.pred_var.shape[0])
         un_star = get_un_star(fD, myPara, m, icm, spl_num)                         
         En_un_1_set = get_En_un_1_star_fast(fD, myPara, m, icm, num_k)
-        logger.debug('sampled f point and value is\n %s \n', np.hstack([fD['f'].X, myPara.obj + myPara.obj_mean]))        
+        logger.debug('sampled f point and value is\n %s \n', np.hstack([fD['f'].X, myPara.obj * myPara.nmlz_f + myPara.obj_mean]))        
         fD = min_cKG(m, fD, myPara, En_un_1_set, un_star)
         
         
@@ -95,8 +95,8 @@ def Aver_En_un_1_samples(m, icm, fD, fD1, myPara, myPara1, samples):
     return En_un_1_star
 
 def get_un_star_fast(fD, myPara, m, icm): 
-    spl_set = CRN_gen(fD, 'c1', myPara.spl_num)      
-    Pr_feasible = -norm.cdf(-myPara.cons_mean, loc=fD['c1'].mean_prd, scale=np.sqrt(fD['c1'].var_prd))+1    
+    spl_set = CRN_gen(fD, 'c1', myPara.spl_num)          
+    Pr_feasible = -norm.cdf(0, loc=fD['c1'].mean_prd * myPara.nmlz_c1 + myPara.cons_mean, scale=np.sqrt(fD['c1'].var_prd)*myPara.nmlz_c1)+1
     # get E_n{g(x)|x is feasible}
     un_set = np.zeros((myPara.num, 1)) 
     E_n_condi = np.zeros((myPara.num, 1))
@@ -112,9 +112,9 @@ def Aver_Un_star_samples(un_set, E_n_condi, j, myPara, spl_set, K_plus_inv, Kx_T
     for k in range(myPara.spl_num):
         spl_c = spl_set[j][0][k]
         Y = np.vstack([myPara.Y, spl_c])            
-        if spl_c >= -myPara.cons_mean:# if c>0, update the model with it                        
+        if spl_c*myPara.nmlz_c1 + myPara.cons_mean  >= 0:# if c>0, update the model with it                        
             mean = predict_raw_mean(K_plus_inv,Kx_T,Y)                
-            obj_pos += mean + myPara.obj_mean
+            obj_pos += (mean * myPara.nmlz_f + myPara.obj_mean)
             count += 1                
     un_set[j] = myPara.tau        
     if count > 0:
@@ -132,22 +132,16 @@ def CRN_gen(fD, task, spl_num):
     spl_crn = np.expand_dims(np.matmul(std,rand_norm)+mean,axis = 1)
     return spl_crn
 
-def check_cov(m, fD, task, x):
-    spl_x1 = np.array([x])
-    cov = m.kern.K(fD[task].X_prd,spl_x1)
-    ss = sum(abs(cov) >= 0.001)
-    print(cov)
-    print(ss)    
-    return
-
 def setup_model(X1,X2,myPara):
     obj = rosen_constraint(X1)['f'][:,None]
+    cons = rosen_constraint(X2)['c1'][:,None]      
     myPara.obj_mean = np.mean(obj)
     myPara.obj = obj - myPara.obj_mean    
-    
-    cons = rosen_constraint(X2)['c1'][:,None]      
     myPara.cons_mean = np.mean(cons)          
     myPara.cons = cons - myPara.cons_mean
+    myPara.nmlz_f = np.max(np.abs(myPara.obj))
+    myPara.nmlz_c1 = np.max(np.abs(myPara.cons))
+    myPara.obj, myPara.cons = [myPara.obj/myPara.nmlz_f,myPara.cons/myPara.nmlz_c1]
     K = GPy.kern.Matern52(input_dim=2, ARD = True)
     icm = GPy.util.multioutput.ICM(input_dim=2,num_outputs=2,kernel=K)
     m = GPy.models.GPCoregionalizedRegression([X1,X2],[myPara.obj,myPara.cons],kernel=icm)        
@@ -185,7 +179,7 @@ def min_cKG(m, fD, myPara, En_un_1_set, un_star):
      
 def get_un_star(fD, myPara, m, icm, spl_num): 
     spl_set = CRN_gen(fD, 'c1', spl_num)
-    Pr_feasible = -norm.cdf(-myPara.cons_mean, loc=fD['c1'].mean_prd, scale=np.sqrt(fD['c1'].var_prd))+1
+    Pr_feasible = -norm.cdf(0, loc=(fD['c1'].mean_prd*myPara.nmlz_c1+myPara.cons_mean), scale=np.sqrt(fD['c1'].var_prd)*myPara.nmlz_c1)+1
     # get E_n{g(x)|x is feasible}
     un_set = np.zeros((myPara.num, 1))  
     E_n_condi = np.zeros((myPara.num, 1))
@@ -207,49 +201,13 @@ def get_un_star(fD, myPara, m, icm, spl_num):
     ind = np.unravel_index(np.argmin(un_set, axis=None),un_set.shape)[0]
     logger.info("un_star is %s at point %s, expected mean %s, feasible probability %s"
                 , un_star, myPara.X_prd[ind,:], E_n_condi[ind,0], Pr_feasible[ind,0])    
-    
-    logger.debug("Coordinate (2D), f predict mean, var, un_set, E_n_condi and feasiblity is \n%s\n", np.hstack([myPara.X_prd, fD['f'].mean_prd + myPara.obj_mean, fD['f'].var_prd, un_set, E_n_condi, Pr_feasible])[0:10,:])
+    logger.debug("Coordinate (2D), f predict mean, var, un_set, E_n_condi, feasiblity and f predict mean use K_inv  is \n%s\n"
+                 , np.hstack([myPara.X_prd, myPara.nmlz_f*fD['f'].mean_prd + myPara.obj_mean, myPara.nmlz_f**2*fD['f'].var_prd, un_set, E_n_condi, Pr_feasible,
+                              myPara.nmlz_f*predict_raw_mean(myPara.K_inv, m.kern.K(myPara.pred_var, fD['f'].X_prd).T , myPara.Y) + myPara.obj_mean])[0:50,:])    
+    logger.debug("K_inv, myPara.Y and pred_var dimension is %s", [myPara.K_inv.shape, myPara.Y.shape, myPara.pred_var.shape])    
+    logger.debug("K max and min is %s", [np.max(m.posterior._K),np.min(m.posterior._K)])
     return un_star
 
-
-def get_En_un_1_star(fD, myPara, m, icm, num_k=5):
-    En_un_1_set = {'f':None, 'c1':None}
-    for ea in fD.keys():        
-        En_un_1_set[ea] = Eval_f(myPara.num)      
-        X_spl = fD[ea].X_prd       
-        spl_set_En = CRN_gen(fD, ea, num_k)        
-        myPara1 = copy(myPara)
-        fD1 = copy(fD)
-        tic = time.time()        
-        for ind,spl_ind in enumerate(spl_set_En):                                        
-            print(ind)
-            print(time.time()-tic)
-            tic = time.time()
-            
-            un_1_star_sum,count = 0,0            
-            spl_x1 = np.array([X_spl[ind]])                        
-            Kx = m.kern.K(myPara.pred_var, spl_x1)            
-            Kxx = m.kern.K(spl_x1)
-            myPara1.K_inv = woodbury_inv_check(myPara.K_inv, Kx, Kx.T, Kxx)
-                                        
-            myPara1.pred_var = np.vstack([myPara.pred_var, spl_x1])
-            for ea1 in fD1.keys():
-                fD1[ea1].Kx_T = m.kern.K(myPara1.pred_var, fD[ea1].X_prd).T 
-                fD1[ea1].var_prd = predict_raw_var(m, myPara1.pred_var,fD[ea1].X_prd, myPara1.K_inv, Y_metadata = fD[ea1].noise_dict)
-            for Y_ind in spl_ind[0]:
-                myPara1.Y = np.vstack([myPara.Y, Y_ind])                                               
-                for ea1 in fD1.keys():
-                    fD1[ea1].mean_prd = predict_raw_mean(myPara1.K_inv, fD1[ea1].Kx_T, myPara1.Y)                    
-                # compute the un+1*                
-                un_1_star = get_un_star(fD1, myPara1, m, icm, myPara1.spl_num)
-                un_1_star_sum += un_1_star
-                count += 1
-            # average the un+1* in spl_set                            
-            
-            En_un_1_star = un_1_star_sum/count              
-            En_un_1_set[ea].val[ind] = En_un_1_star   
-
-    return En_un_1_set
 
 class Func_Dict(object):
     def __init__(self, X_prd, num_train, task):
@@ -275,6 +233,8 @@ class SampleParams(object):
         self.X_prd = lhs(2,samples = num)*4-2
     def update(self, m, fD, num = 6, thres = 1e-6):
         K = m.posterior._K
+        coef = np.max(np.abs(K))
+        K = K/coef
         w,_ = eig(K)
         if min(w) > thres:
             self.K_inv = inv(K)     
@@ -289,6 +249,10 @@ class SampleParams(object):
                 raise ValueError('Inverse K is faile, eigenvalue is:{}'.format(w))        
             else:
                 self.K_inv = inv(K) 
+        self.K_inv = self.K_inv/coef
+        K = K*coef
+        logger = logging.getLogger('main.cKG')            
+        logger.debug("robust K_inv difference is: %s", np.max(np.abs(np.matmul(self.K_inv, m.posterior._K)-np.eye(self.K_inv.shape[0]))))        
         self.Y = np.vstack([self.obj,self.cons])
         self.pred_var = ObsAr(np.vstack([self.add_col(fD['f'].X,0),self.add_col(fD['c1'].X,1)]))
     def get_K_inv(self, m, myPara, spl_x1):

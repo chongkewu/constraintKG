@@ -169,6 +169,14 @@ class Test_woodbury_inv(unittest.TestCase):
         toc1 = time.time()
         npt.assert_array_almost_equal(B_plus_inv,B_plus_inv1,decimal = 4)
         self.assertLess(toc1-toc,toc - tic)
-
+def init_x(X_prd, num_train, h):
+    X = X_prd[0:num_train,:]     
+    # prediction need to add extra colloum to X_prd to select predicted function 
+    if h == 'f':
+        X_prd = np.hstack([X_prd,np.zeros_like(X_prd)[:,0][:,None]])
+    else:
+        X_prd = np.hstack([X_prd,np.ones_like(X_prd)[:,0][:,None]])    
+    noise_dict = {'output_index':X_prd[:,2:].astype(int)}
+    return X, X_prd, noise_dict
 if __name__ == '__main__':
     unittest.main()
