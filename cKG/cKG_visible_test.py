@@ -82,7 +82,7 @@ def setup_model1(X1,X2,myPara):
     m['.*Gaussian_noise'].constrain_fixed(.00001)    
     #m['.*Mat52.len'].constrain_fixed(.5)        
     #m.optimize(optimizer = 'scg') 
-    m.optimize_restarts(optimizer = 'lbfgsb',num_restarts = 10)
+    m.optimize_restarts(optimizer = 'lbfgsb',num_restarts = 3)
     m = m.copy()
     return m,myPara,icm 
 def get_un_star1(fD, myPara, m, icm, spl_set): 

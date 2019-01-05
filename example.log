@@ -1,9 +1,0 @@
-DEBUG:root:This message should go to the log file
-INFO:root:So should this
-WARNING:root:And this, too
-DEBUG:root:This message should go to the log file
-INFO:root:So should this
-WARNING:root:str(currentDT)
-DEBUG:root:This message should go to the log file
-INFO:root:So should this
-WARNING:root:2018-12-03 10:29:28.857515

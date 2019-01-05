@@ -25,11 +25,12 @@ from scipy import stats
 class Test_get_un_star(unittest.TestCase):
     def setUp(self):        
         pass
+    @unittest.skip("Need to redesign the test")
     def test_init(self,num=1000, num_train=80, num_h=2, tau=3000, total=300, spl_num=10):        
         myPara, fD = init_Para_fD(num, tau, num_h, spl_num, num_train)
         npt.assert_array_equal(myPara.X_prd[0:num_train,:],fD['c1'].X)
         npt.assert_array_equal(myPara.X_prd[0:num_train,:],fD['f'].X)
-        m, myPara, icm = setup_model(fD['f'].X, fD['c1'].X, myPara)               
+        m, myPara, icm = setup_model1(fD['f'].X, fD['c1'].X, myPara)               
         for k in fD.keys():
             fD[k].mean_prd, fD[k].var_prd = m.predict(fD[k].X_prd, Y_metadata=fD[k].noise_dict)        
             fD[k].var_prd = fD[k].var_prd.clip(min=0)
@@ -118,7 +119,11 @@ class Test_predict(unittest.TestCase):
         self.Xnew = self.X_prd_f
         mean,_ = predict_raw(self.m,self.pred_var,self.Xnew,self.Y,self.K_inv,fullcov=True)
         Kx_T = self.m.kern.K(self.pred_var, self.Xnew).T
-        mean1 = predict_raw_mean(self.K_inv,Kx_T,self.Y)       
+        fD = {'f':None}
+        fD['f'] = Eval_f(1)
+        fD['f'].nmlz = 1
+        fD['f'].obs_mean = 0
+        mean1 = predict_raw_mean(self.K_inv,Kx_T,self.Y, fD, 'f')       
         npt.assert_array_almost_equal(mean,mean1,decimal = 6)    
     def test_predict_var_compare(self):
 # =============================================================================
@@ -178,5 +183,21 @@ def init_x(X_prd, num_train, h):
         X_prd = np.hstack([X_prd,np.ones_like(X_prd)[:,0][:,None]])    
     noise_dict = {'output_index':X_prd[:,2:].astype(int)}
     return X, X_prd, noise_dict
+def setup_model1(X1,X2,myPara):
+    obj = rosen_constraint(X1)['f'][:,None]
+    myPara.obj = obj - np.mean(obj)    
+    cons = rosen_constraint(X2)['c1'][:,None]      
+    myPara.cons_mean = np.mean(cons)          
+    myPara.cons = cons - myPara.cons_mean
+    K = GPy.kern.Matern52(input_dim=2, ARD = True)
+    icm = GPy.util.multioutput.ICM(input_dim=2,num_outputs=2,kernel=K)
+    m = GPy.models.GPCoregionalizedRegression([X1,X2],[obj,cons],kernel=icm)        
+    m['.*Mat52.var'].constrain_fixed(1.)    
+    m['.*Gaussian_noise'].constrain_fixed(.00001)    
+    #m['.*Mat52.len'].constrain_fixed(.5)        
+    #m.optimize(optimizer = 'scg') 
+    m.optimize_restarts(optimizer = 'lbfgsb',num_restarts = 3)
+    m = m.copy()
+    return m,myPara,icm 
 if __name__ == '__main__':
     unittest.main()
