@@ -12,7 +12,7 @@ import sys
 import cKG
 import os
 
-def main(repeat = 1):    
+def main(repeat = 3):    
     if len(sys.argv) == 1:
         print("Please input experiment name")
         return
@@ -79,5 +79,6 @@ def debug_main():
         status = 'start'
     run_exp(fname, status, stdout='on')
 if __name__ == '__main__':
-    debug_main()
+    #debug_main()
+    main()
     

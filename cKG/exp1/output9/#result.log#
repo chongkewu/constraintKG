@@ -1,0 +1,167 @@
+
+2019-01-04 22:05:30,136 - main.cKG - INFO - cKG begins at num = 1000, num_train = 10, num_h = 2, tau = 3000, total = 300, spl_num = 10, num_k = 5 
+
+2019-01-04 22:05:30,894 - main.cKG - INFO - Number of sampled points: 20
+2019-01-04 22:05:32,614 - main.cKG - INFO - un_star is -14.262549310047286 at point [0.36667378 0.13034251], condition expected mean -14.262549310047286, variance 5393.448909832001, feasible probability 1.0
+2019-01-05 00:00:02,767 - main.cKG - INFO - The Next Sample task is c1 at point [-0.27666311  1.9337929 ] cKG is -363.0068889650407
+2019-01-05 00:00:02,767 - main.cKG - INFO - The obj value is 346.5677827905016, feasiblility is True
+2019-01-05 00:00:02,768 - main.cKG - INFO - The feasible probability is [0.97878928]
+2019-01-05 00:00:02,768 - main.cKG - INFO - Evaluate f 10 times, c1 11 times
+
+2019-01-05 00:00:03,120 - main.cKG - INFO - Number of sampled points: 21
+2019-01-05 00:00:05,792 - main.cKG - INFO - un_star is -33.322159546667464 at point [0.31282903 0.28712206], condition expected mean -33.32215954667016, variance 8215.215964175039, feasible probability 0.9999999999999991
+2019-01-05 01:53:44,270 - main.cKG - INFO - The Next Sample task is c1 at point [-0.94943764  1.47170221] cKG is -185.99606779596678
+2019-01-05 01:53:44,271 - main.cKG - INFO - The obj value is 36.3211379187924, feasiblility is True
+2019-01-05 01:53:44,271 - main.cKG - INFO - The feasible probability is [0.95007538]
+2019-01-05 01:53:44,308 - main.cKG - INFO - Evaluate f 10 times, c1 12 times
+
+2019-01-05 01:53:44,637 - main.cKG - INFO - Number of sampled points: 22
+2019-01-05 01:53:47,389 - main.cKG - INFO - un_star is -15.649292673571756 at point [0.36667378 0.13034251], condition expected mean -15.649292673571756, variance 1721.4648247159937, feasible probability 1.0
+2019-01-05 03:46:50,343 - main.cKG - INFO - The Next Sample task is f at point [-0.25682979  0.07367429] cKG is -130.67964169129564
+2019-01-05 03:46:50,343 - main.cKG - INFO - The obj value is 1.5855697737035936, feasiblility is True
+2019-01-05 03:46:50,343 - main.cKG - INFO - The feasible probability is [0.9998352]
+2019-01-05 03:46:50,344 - main.cKG - INFO - Evaluate f 11 times, c1 12 times
+
+2019-01-05 03:46:50,854 - main.cKG - INFO - Number of sampled points: 23
+2019-01-05 03:46:53,500 - main.cKG - INFO - un_star is -57.257839854564736 at point [0.17831349 0.32393386], condition expected mean -57.257839854564736, variance 2400.4285871928314, feasible probability 1.0
+2019-01-05 05:40:05,188 - main.cKG - INFO - The Next Sample task is f at point [-0.86623509  1.57731091] cKG is -29.640927726113404
+2019-01-05 05:40:05,188 - main.cKG - INFO - The obj value is 71.8670791133221, feasiblility is True
+2019-01-05 05:40:05,188 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-05 05:40:05,189 - main.cKG - INFO - Evaluate f 12 times, c1 12 times
+
+2019-01-05 05:40:05,552 - main.cKG - INFO - Number of sampled points: 24
+2019-01-05 05:40:07,815 - main.cKG - INFO - un_star is -48.37925018720417 at point [0.12597394 0.11537081], condition expected mean -48.37925018720417, variance 860.9981311584739, feasible probability 1.0
+2019-01-05 07:32:43,313 - main.cKG - INFO - The Next Sample task is f at point [ 0.4387867 -0.1501379] cKG is -29.086377271002455
+2019-01-05 07:32:43,313 - main.cKG - INFO - The obj value is 12.057347819166145, feasiblility is True
+2019-01-05 07:32:43,313 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-05 07:32:43,314 - main.cKG - INFO - Evaluate f 13 times, c1 12 times
+
+2019-01-05 07:32:43,813 - main.cKG - INFO - Number of sampled points: 25
+2019-01-05 07:32:46,288 - main.cKG - INFO - un_star is -18.475403921868242 at point [-0.01471584 -0.17935178], condition expected mean -18.47540395888036, variance 1525.0143504462014, feasible probability 0.9999999999877381
+2019-01-05 09:26:17,738 - main.cKG - INFO - The Next Sample task is f at point [-0.35482494  0.39678106] cKG is -55.83212792815569
+2019-01-05 09:26:17,738 - main.cKG - INFO - The obj value is 9.173165749787486, feasiblility is True
+2019-01-05 09:26:17,739 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-05 09:26:17,739 - main.cKG - INFO - Evaluate f 14 times, c1 12 times
+
+2019-01-05 09:26:18,138 - main.cKG - INFO - Number of sampled points: 26
+2019-01-05 09:26:20,684 - main.cKG - INFO - un_star is -6.9445766924257555 at point [ 0.01380852 -0.00742087], condition expected mean -6.9445766924257555, variance 457.1251236620793, feasible probability 1.0
+2019-01-05 11:01:15,177 - main.cKG - INFO - cKG begins at num = 1000, num_train = 10, num_h = 2, tau = 3000, total = 300, spl_num = 10, num_k = 5 
+
+2019-01-05 11:01:15,890 - main.cKG - INFO - Number of sampled points: 26
+2019-01-05 11:01:17,542 - main.cKG - INFO - un_star is -7.00294081905542 at point [ 0.01380852 -0.00742087], condition expected mean -7.00294081905542, variance 457.1288590224002, feasible probability 1.0
+2019-01-05 12:54:36,944 - main.cKG - INFO - The Next Sample task is f at point [0.89873392 0.62534285] cKG is -21.207017950754967
+2019-01-05 12:54:36,952 - main.cKG - INFO - The obj value is 3.336494163876602, feasiblility is True
+2019-01-05 12:54:36,953 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-05 12:54:36,953 - main.cKG - INFO - Evaluate f 15 times, c1 12 times
+
+2019-01-05 12:54:37,426 - main.cKG - INFO - Number of sampled points: 27
+2019-01-05 12:54:39,789 - main.cKG - INFO - un_star is -2.5187175344565844 at point [-0.07433711  0.08824407], condition expected mean -2.5187175344565844, variance 247.941943924598, feasible probability 1.0
+2019-01-05 14:48:15,526 - main.cKG - INFO - The Next Sample task is f at point [ 0.04894871 -0.64904024] cKG is -14.073712978387164
+2019-01-05 14:48:15,527 - main.cKG - INFO - The obj value is 43.341412782975006, feasiblility is True
+2019-01-05 14:48:15,527 - main.cKG - INFO - The feasible probability is [0.99386173]
+2019-01-05 14:48:15,527 - main.cKG - INFO - Evaluate f 16 times, c1 12 times
+
+2019-01-05 14:48:15,921 - main.cKG - INFO - Number of sampled points: 28
+2019-01-05 14:48:18,117 - main.cKG - INFO - un_star is -2.3980952125233275 at point [-0.0386179  -0.06571943], condition expected mean -2.3980952125233275, variance 160.19433241315525, feasible probability 1.0
+2019-01-05 16:41:11,763 - main.cKG - INFO - The Next Sample task is c1 at point [-0.86882006 -0.32854444] cKG is -4.313690448103277
+2019-01-05 16:41:11,765 - main.cKG - INFO - The obj value is 120.86647136085881, feasiblility is True
+2019-01-05 16:41:11,765 - main.cKG - INFO - The feasible probability is [0.82414393]
+2019-01-05 16:41:11,765 - main.cKG - INFO - Evaluate f 16 times, c1 13 times
+
+2019-01-05 16:41:12,227 - main.cKG - INFO - Number of sampled points: 29
+2019-01-05 16:41:14,717 - main.cKG - INFO - un_star is -0.8295505296113447 at point [-0.0386179  -0.06571943], condition expected mean -0.8295505296113447, variance 127.81751259129693, feasible probability 1.0
+2019-01-05 18:34:23,193 - main.cKG - INFO - The Next Sample task is f at point [1.06839375 0.91664116] cKG is -9.246442758829726
+2019-01-05 18:34:23,202 - main.cKG - INFO - The obj value is 5.059262395201557, feasiblility is True
+2019-01-05 18:34:23,202 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-05 18:34:23,202 - main.cKG - INFO - Evaluate f 17 times, c1 13 times
+
+2019-01-05 18:34:23,671 - main.cKG - INFO - Number of sampled points: 30
+2019-01-05 18:34:26,176 - main.cKG - INFO - un_star is -2.194564863611339 at point [ 0.01380852 -0.00742087], condition expected mean -2.194564863611339, variance 142.89699639308932, feasible probability 1.0
+2019-01-05 20:26:48,543 - main.cKG - INFO - The Next Sample task is f at point [-1.09455292  1.99769202] cKG is -8.474687156730708
+2019-01-05 20:26:48,544 - main.cKG - INFO - The obj value is 68.3305121464409, feasiblility is True
+2019-01-05 20:26:48,544 - main.cKG - INFO - The feasible probability is [0.99965187]
+2019-01-05 20:26:48,544 - main.cKG - INFO - Evaluate f 18 times, c1 13 times
+
+2019-01-05 20:26:48,877 - main.cKG - INFO - Number of sampled points: 31
+2019-01-05 20:26:51,279 - main.cKG - INFO - un_star is -1.454179642007182 at point [ 0.01380852 -0.00742087], condition expected mean -1.454179642007182, variance 136.37663006126445, feasible probability 1.0
+2019-01-05 22:20:19,656 - main.cKG - INFO - The Next Sample task is c1 at point [0.64349014 0.66322055] cKG is -25.774390106868893
+2019-01-05 22:20:19,657 - main.cKG - INFO - The obj value is 6.3342230187234225, feasiblility is True
+2019-01-05 22:20:19,657 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-05 22:20:19,657 - main.cKG - INFO - Evaluate f 18 times, c1 14 times
+
+2019-01-05 22:20:20,151 - main.cKG - INFO - Number of sampled points: 32
+2019-01-05 22:20:22,691 - main.cKG - INFO - un_star is -0.3325366249245064 at point [0.86722563 0.74184295], condition expected mean -0.3325366249245064, variance 22.124483104056342, feasible probability 1.0
+2019-01-06 17:57:31,286 - main.cKG - INFO - cKG begins at num = 1000, num_train = 10, num_h = 2, tau = 3000, total = 300, spl_num = 10, num_k = 5 
+
+2019-01-06 17:57:32,152 - main.cKG - INFO - Number of sampled points: 32
+2019-01-06 17:57:33,858 - main.cKG - INFO - un_star is -0.18880628608187636 at point [0.86722563 0.74184295], condition expected mean -0.18880628608187636, variance 22.12444717692804, feasible probability 1.0
+2019-01-06 19:50:22,996 - main.cKG - INFO - The Next Sample task is f at point [-0.35798817  0.06744222] cKG is -4.882466801571564
+2019-01-06 19:50:23,004 - main.cKG - INFO - The obj value is 2.212742534826598, feasiblility is True
+2019-01-06 19:50:23,004 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-06 19:50:23,004 - main.cKG - INFO - Evaluate f 19 times, c1 14 times
+
+2019-01-06 19:50:23,662 - main.cKG - INFO - Number of sampled points: 33
+2019-01-06 19:50:26,072 - main.cKG - INFO - un_star is -0.6008182749896548 at point [0.86722563 0.74184295], condition expected mean -0.6008182749896548, variance 19.730125807946685, feasible probability 1.0
+2019-01-06 21:44:03,067 - main.cKG - INFO - The Next Sample task is c1 at point [1.12488566 1.04445783] cKG is -17.509261581819064
+2019-01-06 21:44:03,068 - main.cKG - INFO - The obj value is 4.895715910216134, feasiblility is True
+2019-01-06 21:44:03,068 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-06 21:44:03,069 - main.cKG - INFO - Evaluate f 19 times, c1 15 times
+
+2019-01-06 21:44:03,798 - main.cKG - INFO - Number of sampled points: 34
+2019-01-06 21:44:06,453 - main.cKG - INFO - un_star is -0.4267065651926316 at point [0.86722563 0.74184295], condition expected mean -0.4267065651926316, variance 17.397014099216605, feasible probability 1.0
+2019-01-06 23:36:02,427 - main.cKG - INFO - The Next Sample task is f at point [-1.82410434  1.45269635] cKG is -65.79577520969143
+2019-01-06 23:36:02,442 - main.cKG - INFO - The obj value is 359.4106872784359, feasiblility is False
+2019-01-06 23:36:02,443 - main.cKG - INFO - The feasible probability is [0.]
+2019-01-06 23:36:02,443 - main.cKG - INFO - Evaluate f 20 times, c1 15 times
+
+2019-01-06 23:36:03,291 - main.cKG - INFO - Number of sampled points: 35
+2019-01-06 23:36:05,660 - main.cKG - INFO - un_star is -0.4233449198403548 at point [0.86722563 0.74184295], condition expected mean -0.4233449198403548, variance 17.397747983869152, feasible probability 1.0
+2019-01-07 01:28:57,546 - main.cKG - INFO - The Next Sample task is f at point [0.87107907 0.87212916] cKG is -3.086627115890868
+2019-01-07 01:28:57,553 - main.cKG - INFO - The obj value is 1.3014522531326704, feasiblility is True
+2019-01-07 01:28:57,553 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-07 01:28:57,554 - main.cKG - INFO - Evaluate f 21 times, c1 15 times
+
+2019-01-07 01:28:58,148 - main.cKG - INFO - Number of sampled points: 36
+2019-01-07 01:29:00,528 - main.cKG - INFO - un_star is -0.47353511292168377 at point [0.86722563 0.74184295], condition expected mean -0.47353511292168377, variance 0.5052674651128405, feasible probability 1.0
+2019-01-07 03:21:16,622 - main.cKG - INFO - The Next Sample task is f at point [0.91376644 0.95315244] cKG is -2.6260780845855485
+2019-01-07 03:21:16,631 - main.cKG - INFO - The obj value is 1.404166197603135, feasiblility is True
+2019-01-07 03:21:16,632 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-07 03:21:16,632 - main.cKG - INFO - Evaluate f 22 times, c1 15 times
+
+2019-01-07 03:21:17,254 - main.cKG - INFO - Number of sampled points: 37
+2019-01-07 03:21:19,808 - main.cKG - INFO - un_star is -0.2955815113622009 at point [0.86722563 0.74184295], condition expected mean -0.2955815113622009, variance 0.32673675787342293, feasible probability 1.0
+2019-01-07 05:14:20,747 - main.cKG - INFO - The Next Sample task is f at point [-0.56294026  1.2896065 ] cKG is -151.42287529353135
+2019-01-07 05:14:20,752 - main.cKG - INFO - The obj value is 97.05823773559199, feasiblility is True
+2019-01-07 05:14:20,753 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-07 05:14:20,753 - main.cKG - INFO - Evaluate f 23 times, c1 15 times
+
+2019-01-07 05:14:21,551 - main.cKG - INFO - Number of sampled points: 38
+2019-01-07 05:14:24,012 - main.cKG - INFO - un_star is -0.20295369084777803 at point [0.86722563 0.74184295], condition expected mean -0.20295369084777803, variance 0.31640908692753533, feasible probability 1.0
+2019-01-07 07:06:51,538 - main.cKG - INFO - The Next Sample task is f at point [-0.39221561  0.04446334] cKG is -202.53516456067322
+2019-01-07 07:06:51,543 - main.cKG - INFO - The obj value is 3.1344383489611007, feasiblility is True
+2019-01-07 07:06:51,543 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-07 07:06:51,544 - main.cKG - INFO - Evaluate f 24 times, c1 15 times
+
+2019-01-07 07:06:52,504 - main.cKG - INFO - Number of sampled points: 39
+2019-01-07 07:06:55,119 - main.cKG - INFO - un_star is -0.20903361298317122 at point [0.86722563 0.74184295], condition expected mean -0.20903361298317122, variance 0.30387399814384175, feasible probability 1.0
+2019-01-07 08:59:31,596 - main.cKG - INFO - The Next Sample task is c1 at point [ 1.96204104 -1.20901428] cKG is -181.7200197874594
+2019-01-07 08:59:31,629 - main.cKG - INFO - The obj value is 2559.8884580019408, feasiblility is False
+2019-01-07 08:59:31,629 - main.cKG - INFO - The feasible probability is [0.]
+2019-01-07 08:59:31,629 - main.cKG - INFO - Evaluate f 24 times, c1 16 times
+
+2019-01-07 08:59:32,528 - main.cKG - INFO - Number of sampled points: 40
+2019-01-07 08:59:34,947 - main.cKG - INFO - un_star is -4.361104535577925 at point [ 0.41323511 -0.09032101], condition expected mean -4.361104535577925, variance 2e-06, feasible probability 1.0
+2019-01-07 10:53:38,897 - main.cKG - INFO - The Next Sample task is f at point [-1.28519642  1.88548306] cKG is -1827.6160382404312
+2019-01-07 10:53:38,903 - main.cKG - INFO - The obj value is 10.686179944070894, feasiblility is False
+2019-01-07 10:53:38,903 - main.cKG - INFO - The feasible probability is [0.12865091]
+2019-01-07 10:53:38,904 - main.cKG - INFO - Evaluate f 25 times, c1 16 times
+
+2019-01-07 10:53:39,636 - main.cKG - INFO - Number of sampled points: 41
+2019-01-07 10:53:42,117 - main.cKG - INFO - un_star is -0.3158798382828252 at point [0.86722563 0.74184295], condition expected mean -0.3158798382828252, variance 0.3239086021079834, feasible probability 1.0
+2019-01-07 12:48:10,070 - main.cKG - INFO - The Next Sample task is f at point [-0.67192433  1.59454298] cKG is -4837.219301847185
+2019-01-07 12:48:10,076 - main.cKG - INFO - The obj value is 133.45410117363195, feasiblility is True
+2019-01-07 12:48:10,076 - main.cKG - INFO - The feasible probability is [1.]
+2019-01-07 12:48:10,076 - main.cKG - INFO - Evaluate f 26 times, c1 16 times
+
+2019-01-07 12:48:10,944 - main.cKG - INFO - Number of sampled points: 42
+2019-01-07 12:48:13,462 - main.cKG - INFO - un_star is -0.24430403300312092 at point [0.86722563 0.74184295], condition expected mean -0.24430403300312092, variance 0.2994201566498117, feasible probability 1.0

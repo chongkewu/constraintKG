@@ -33,7 +33,7 @@ def main(num=1000, num_train=10, num_h=2, tau=3000, total=300, spl_num=10,
     if status == 'start':
         myPara, fD = init_Para_fD(num, tau, num_h, spl_num, num_train)
     else:
-        with open(fname + '\\data.pkl','rb') as f:  
+        with open(fname + '/data.pkl','rb') as f:  
             myPara,fD = pickle.load(f)
     for i in range(total):    
         m, icm, fD = setup_model(fD)
@@ -43,7 +43,7 @@ def main(num=1000, num_train=10, num_h=2, tau=3000, total=300, spl_num=10,
         En_un_1_set = get_En_un_1_star_fast(fD, myPara, m, icm, num_k)
         logger.debug('sampled f point and value is\n %s \n', np.hstack([fD['f'].X, fD['f'].obs_val]))        
         fD = min_cKG(m, fD, myPara, En_un_1_set, un_star)
-        with open(fname + '\\data.pkl', 'wb') as f:  
+        with open(fname + '/data.pkl', 'wb') as f:  
             pickle.dump([myPara,fD], f)
       
 
