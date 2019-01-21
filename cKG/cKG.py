@@ -24,31 +24,31 @@ import pickle
 import os
 
 def main(num=1000, num_train=10, num_h=2, tau=3000, total=300, spl_num=10, 
-         num_k=5, fname = os.getcwd(), status = 'start'):
+         num_k=5, fname = os.getcwd(), status = 'start', func = "rosen"):
     np.set_printoptions(linewidth = 150)    
     logger = logging.getLogger('main.cKG')
     logger.info('cKG begins at num = %s, num_train = %s, num_h = %s, '
-                 'tau = %s, total = %s, spl_num = %s, num_k = %s \n'
-                 , num, num_train, num_h, tau, total, spl_num, num_k)    
+                 'tau = %s, total = %s, spl_num = %s, num_k = %s func = %s\n'
+                 , num, num_train, num_h, tau, total, spl_num, num_k, func)    
     if status == 'start':
-        myPara, fD = init_Para_fD(num, tau, num_h, spl_num, num_train)
+        myPara, fD = init_Para_fD(num, tau, num_h, spl_num, num_train, func, fname)
     else:
         with open(fname + '/data.pkl','rb') as f:  
             myPara,fD = pickle.load(f)
     for i in range(total):    
-        m, icm, fD = setup_model(fD)
+        m, icm, fD = setup_model(fD, func)
         myPara.update(m, fD) 
         logger.info('Number of sampled points: %s', myPara.pred_var.shape[0])
         un_star = get_un_star(fD, myPara, m, icm, spl_num)                         
         En_un_1_set = get_En_un_1_star_fast(fD, myPara, m, icm, num_k)
         logger.debug('sampled f point and value is\n %s \n', np.hstack([fD['f'].X, fD['f'].obs_val]))        
-        fD = min_cKG(m, fD, myPara, En_un_1_set, un_star)
+        fD = min_cKG(m, fD, myPara, En_un_1_set, un_star, func)
         with open(fname + '/data.pkl', 'wb') as f:  
             pickle.dump([myPara,fD], f)
       
 
-def init_Para_fD(num, tau, num_h, spl_num, num_train):
-    myPara = SampleParams(num, tau, num_h, spl_num, num_train)
+def init_Para_fD(num, tau, num_h, spl_num, num_train, func, fname):
+    myPara = SampleParams(num, tau, num_h, spl_num, num_train, func, fname)
     fD = {'f': None, 'c1': None}    
     for k in fD.keys():
         fD[k] = Func_Dict(myPara.X_prd, num_train, k)        
@@ -122,7 +122,11 @@ def Aver_Un_star_samples(un_set, E_n_condi, j, myPara, spl_set, K_plus_inv, Kx_T
     if count > 0:
         E_n_condi[j] = obj_pos/count
         un_set[j] = Pr_feasible[j][0] * E_n_condi[j]+myPara.tau * (1-Pr_feasible[j][0])
-        
+    # debug code starts
+    if E_n_condi[j,:] < -200:
+        import pdb
+        pdb.set_trace()
+    # debug code ends
     return un_set, E_n_condi
 
 
@@ -135,10 +139,10 @@ def CRN_gen(fD, task, spl_num):
     spl_crn = np.expand_dims(np.matmul(std,rand_norm)+mean,axis = 1)
     return (spl_crn - fD[task].obs_mean)/fD[task].nmlz
 
-def setup_model(fD,noise = 1e-6):
+def setup_model(fD, func, noise = 1e-6):
     for ea in fD.keys():
         fD[ea].noise = noise
-        fD[ea].obs_val = rosen_constraint(fD[ea].X)[ea][:,None]    
+        fD[ea].obs_val = obj_func(fD[ea].X, func)[ea][:,None]    
         fD[ea].obs_mean = np.mean(fD[ea].obs_val)
         fD[ea].nmlz = fD[ea].obs_val.std(0)    
         fD[ea].Ny = (fD[ea].obs_val - fD[ea].obs_mean)/fD[ea].nmlz
@@ -163,17 +167,24 @@ def setup_model(fD,noise = 1e-6):
         fD[k].var_prd = fD[k].var_prd * fD[k].nmlz**2 + 2 * fD[k].noise
     return m, icm, fD 
 
-def min_cKG(m, fD, myPara, En_un_1_set, un_star):
+def min_cKG(m, fD, myPara, En_un_1_set, un_star, func):
     logger = logging.getLogger('main.cKG') 
     min_cKG = np.inf      
     for ea in fD.keys():
         En_set = En_un_1_set[ea].val - un_star
+        En_set[fD[ea].X_ind[:,0].tolist()] = np.inf
         min_val = min(En_set)
         ind = np.unravel_index(np.argmin(En_set, axis=None),En_set.shape)[0]        
         if min_val <= min_cKG:            
             min_cKG = min_val
             min_ind = ind
             min_task = ea       
+    fD[min_task].X_ind = np.vstack([fD[min_task].X_ind, min_ind])
+    if min_task == 'f':
+        myPara.X_ind = np.vstack([myPara.X_ind, np.array([[min_ind,0]])])        
+    else:
+        myPara.X_ind = np.vstack([myPara.X_ind, np.array([[min_ind,1]])])
+        
     try:
         spl_pt = np.array([fD[min_task].X_prd[min_ind]])            
     except:             
@@ -181,7 +192,7 @@ def min_cKG(m, fD, myPara, En_un_1_set, un_star):
     fD[min_task].X = np.vstack([fD[min_task].X,spl_pt[:,0:-1]])
     
     logger.info("The Next Sample task is {} at point {} cKG is {}".format(min_task,  str(spl_pt[0,0:-1]), min_cKG[0]))        
-    logger.info("The obj value is %s, feasiblility is %s", rosen_constraint(spl_pt)['f'][0], (rosen_constraint(spl_pt)['c1'][0] >0))
+    logger.info("The obj value is %s, feasiblility is %s", obj_func(spl_pt, func)['f'][0], (obj_func(spl_pt, func)['c1'][0] >0))
     logger.info("The feasible probability is %s", -norm.cdf(0, loc=fD['c1'].mean_prd[min_ind], scale=np.sqrt(fD['c1'].var_prd[min_ind]))+1)
     logger.info("Evaluate f {} times, c1 {} times\n".format(fD['f'].X.shape[0],fD['c1'].X.shape[0]))
     return fD
@@ -208,8 +219,8 @@ def get_un_star(fD, myPara, m, icm, spl_num):
         un_set, E_n_condi = Aver_Un_star_samples(un_set, E_n_condi, j, myPara, spl_set, K_plus_inv, Kx_T, Pr_feasible, fD)        
     un_star = np.min(un_set)
     ind = np.unravel_index(np.argmin(un_set, axis=None),un_set.shape)[0]
-    logger.info("un_star is %s at point %s, condition expected mean %s, variance %s, feasible probability %s"
-                , un_star, myPara.X_prd[ind,:], E_n_condi[ind,0], fD['f'].var_prd[ind,0], Pr_feasible[ind,0])    
+    logger.info("un_star is %s at point %s, condition expected mean %s, posterior mean %s,variance %s, feasible probability %s"
+                , un_star, myPara.X_prd[ind,:], E_n_condi[ind,0], fD['f'].mean_prd[ind,0], fD['f'].var_prd[ind,0], Pr_feasible[ind,0])    
     logger.debug("Coordinate (2D), f predict mean, var, un_set, E_n_condi, feasiblity, f predict mean use K_inv is \n%s\n"
                  , np.hstack([myPara.X_prd, fD['f'].mean_prd, fD['f'].var_prd, un_set, E_n_condi, Pr_feasible
                               ,predict_raw_mean(myPara.K_inv, m.kern.K(myPara.pred_var, fD['f'].X_prd).T , myPara.Y, fD, 'f')])[0:20,:])    
@@ -220,12 +231,13 @@ def get_un_star(fD, myPara, m, icm, spl_num):
 
 class Func_Dict(object):
     def __init__(self, X_prd, num_train, task):
-        self.X = X_prd[0:num_train,:]     
+        self.X = X_prd[0:num_train,:]   
+        self.X_ind = np.array([range(num_train)]).T
         # prediction need to add extra colloum to X_prd to select predicted function 
         if task == 'f':
-            self.X_prd = np.hstack([X_prd,np.zeros_like(X_prd)[:,0][:,None]])
+            self.X_prd = np.hstack([X_prd,np.zeros_like(X_prd)[:,0][:,None]])            
         else:
-            self.X_prd = np.hstack([X_prd,np.ones_like(X_prd)[:,0][:,None]])    
+            self.X_prd = np.hstack([X_prd,np.ones_like(X_prd)[:,0][:,None]])                
         self.noise_dict = {'output_index':self.X_prd[:,2:].astype(int)}
 
 class Eval_f(object):
@@ -233,13 +245,22 @@ class Eval_f(object):
         self.val = np.zeros((num,1))      
 
 class SampleParams(object):
-    def __init__(self,num,tau,num_h,spl_num,num_train):
+    def __init__(self,num,tau,num_h,spl_num,num_train,func,fname):
         self.num = num
         self.tau = tau
         self.num_h = num_h
         self.spl_num = spl_num
         self.num_train = num_train
-        self.X_prd = lhs(2,samples = num)*4-2
+        for _ in range(int(fname[-1])+1):
+            if func == "rosen":
+                self.X_prd = lhs(2,samples = num)*4-2
+            else:
+                lhs_s = lhs(2,samples = num)
+                self.X_prd = np.hstack([np.array([15*lhs_s[:,0]-5]).T,np.array([15*lhs_s[:,1]]).T])
+        ind = np.array([range(num_train)]).T
+        ind1 = np.hstack([ind,np.zeros_like(ind)[:,0][:,None]])
+        ind2 = np.hstack([ind,np.ones_like(ind)[:,0][:,None]])
+        self.X_ind = np.vstack([ind1,ind2])        
     def update(self, m, fD, num = 6, thres = 1e-6, i=-1):
         K = m.posterior._K
         self.K_inv = m.posterior.woodbury_inv
@@ -353,15 +374,28 @@ def woodbury_inv_check(P_inv,Q,R,S):
             raise ValueError('A_inv do not positive definite even add jitter')
     return A_inv
 
-def rosen_constraint(params):
-  x1 = params[:,0]
-  x2 = params[:,1]
-  a = 1
-  b = 100
-
-  c1 = -x1**2 - (x2-1)**2/2 + 2
-  f  = (a - x1)**2 + b*(x2 - x1**2)**2
-  return {'f':f, 'c1':c1}    
+def obj_func(params, func="rosen"):
+    if func == "rosen":
+        x1 = params[:,0]
+        x2 = params[:,1]
+        a = 1
+        b = 100
     
+        c1 = -x1**2 - (x2-1)**2/2 + 2
+        f  = (a - x1)**2 + b*(x2 - x1**2)**2
+        return {'f':f, 'c1':c1}    
+    else:
+        x1 = params[:,0]
+        x2 = params[:,1]
+        a = 1
+        b = 5.1/(4*np.pi**2)
+        c = 5/np.pi
+        r = 6
+        s = 10
+        t = 1/(8*np.pi)
+        
+        f  = a*(x2 - b*x1**2 +c*x1 - r)**2 + s*(1-t)*np.cos(x1) + s
+        c1 = 2. - a*(x2 - b*x1**2 + c*x1 - r)**2
+        return {'f':f, 'c1':c1}    
 if __name__ == '__main__':
     main()

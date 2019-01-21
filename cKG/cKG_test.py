@@ -90,6 +90,9 @@ class Test_predict(unittest.TestCase):
         mean_prd_f,var_prd_f = self.m.predict(self.X_prd_f,Y_metadata=self.noise_dict_f)
         self.Xnew = self.X_prd_f        
         mean,var = predict_raw(self.m,self.pred_var,self.Xnew,self.Y,self.K_inv,fullcov=False)        
+        npt.assert_array_almost_equal(mean_prd_f,mean,decimal = 4)
+        print(mean_prd_f)
+        print(mean)
         npt.assert_array_almost_equal(var_prd_f,var,decimal = 4)
     def test_predict_raw_cons(self):        
         # test mean and variance of constraint
@@ -146,7 +149,7 @@ class Test_predict(unittest.TestCase):
         print('tearDown')
 class Test_woodbury_inv(unittest.TestCase):
     def setUp(self):
-        matrixSize = 500
+        matrixSize = 20
         A = np.random.rand(matrixSize,matrixSize)
         B_plus = np.matmul(A,A.T)+0.001*np.eye(matrixSize)    
         B = B_plus[0:-1,0:-1]       
@@ -174,6 +177,31 @@ class Test_woodbury_inv(unittest.TestCase):
         toc1 = time.time()
         npt.assert_array_almost_equal(B_plus_inv,B_plus_inv1,decimal = 4)
         self.assertLess(toc1-toc,toc - tic)
+    def test_woodbury_inv_NPD(self):
+        NZ = np.zeros((self.matrixSize-1,self.matrixSize-1))
+        NZ[-1,-1] = 1e-15
+        tmp = np.vstack([self.B[0:-1,0:-1],self.B[-2,0:-1]])
+        tmp1 = np.vstack([np.array([self.B[-2,0:-1]]).T,np.array([[self.B[-2,-2]]])])
+        B_1 = np.hstack([tmp,tmp1])
+        B_2 = B_1 + 1*1e-6*np.eye(self.matrixSize-1)
+        B_inv1 = np.linalg.inv(B_1)
+        B_inv2 = np.linalg.inv(B_2)     
+        print("det of original P: {}".format(np.linalg.det(B_1)))        
+        print("det of jitter 1e-6 P: {}".format(np.linalg.det(B_2)))        
+        print("Origin P_inv@ origin P : {}".format(np.max(B_inv1@B_1 - np.eye(self.matrixSize-1))))        
+        print("jitter 1e-6 P_inv@ origin P: {}".format(np.max(B_inv2@B_1 - np.eye(self.matrixSize-1))))
+        # add one colum and row R,Q,S
+        R = np.random.random((1,self.matrixSize-1))
+        Q = R.T
+        S = np.random.random((1,1))
+        K = np.hstack([np.vstack([B_1,R]),np.vstack([Q,S])])
+        K_inv = np.linalg.inv(K)
+        print("The K @ K_inv: {}".format(np.max(K_inv@K - np.eye(self.matrixSize))))
+        K_inv_woodbury1 = woodbury_inv(B_inv1,Q,R,S)
+        print("K @ woodbury update with Origin P_inv: {}".format(np.max(K_inv_woodbury1@K - np.eye(self.matrixSize))))
+        K_inv_woodbury2 = woodbury_inv(B_inv2,Q,R,S)
+        print("K @ woodbury update with jitter P_inv: {}".format(np.max(K_inv_woodbury2@K - np.eye(self.matrixSize))))
+        pass
 def init_x(X_prd, num_train, h):
     X = X_prd[0:num_train,:]     
     # prediction need to add extra colloum to X_prd to select predicted function 
@@ -199,5 +227,14 @@ def setup_model1(X1,X2,myPara):
     m.optimize_restarts(optimizer = 'lbfgsb',num_restarts = 3)
     m = m.copy()
     return m,myPara,icm 
+def rosen_constraint(params):
+    x1 = params[:,0]
+    x2 = params[:,1]
+    a = 1
+    b = 100
+
+    c1 = -x1**2 - (x2-1)**2/2 + 2
+    f  = (a - x1)**2 + b*(x2 - x1**2)**2
+    return {'f':f, 'c1':c1} 
 if __name__ == '__main__':
     unittest.main()

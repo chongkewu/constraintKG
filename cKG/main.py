@@ -69,16 +69,16 @@ def run_exp(fname, status, stdout='on'):
         stream_handler.setLevel(level=logging.INFO)
         logger.addHandler(stream_handler)
     
-    cKG.main(num=50, num_train=10, num_h=2, tau=3000, total=300, spl_num=10, 
-             num_k=5, fname = fname, status = status)
+    cKG.main(num=1000, num_train=5, num_h=2, tau=3000, total=300, spl_num=10, 
+             num_k=5, fname = fname, status = status, func = "rosen")
 def debug_main():
-    fname = 'debug'
+    fname = 'debug_0'
     status = 'continue'
     if not os.path.isdir(fname):
         os.makedirs(fname)
         status = 'start'
     run_exp(fname, status, stdout='on')
 if __name__ == '__main__':
-    #debug_main()
-    main()
+    debug_main()
+    #main()
     
