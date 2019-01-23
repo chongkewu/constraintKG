@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jan  4 18:20:00 2019
-
+This file include several functions for test and experiment purpose. 
 @author: 44266
 """
 import GPy
@@ -21,6 +21,9 @@ woodbury_inv,setup_model
 import matplotlib.pyplot as plt
 
 def read_data(penalty = 300, func_name = "rosen"):
+    '''
+    read data from cKG.py
+    '''
     with open('cKG_data/01172019/'+func_name+'/output0' + '/data.pkl','rb') as f:  
         myPara,fD = pickle.load(f)
     coor_ind = myPara.X_ind[:,0]
@@ -46,6 +49,9 @@ def read_data(penalty = 300, func_name = "rosen"):
     plt.title("utility of " + func_name)
     plt.xlabel("num of evaluation")
 def test_multiprocess():
+    '''
+    a function for test multiprocesss
+    '''
     p = Pool(4)
     for i in range(4):    
         p.apply_async(test_run, args=())
@@ -61,6 +67,9 @@ def test_run():
     print(lhs(2,samples=1000)[0:10,:])
     return
 def debug_woodbury_pic():
+    '''
+    This function plot the distribution of sample points
+    '''
     fname = 'debug_0'
     with open(fname + '/data_debug_woodbury.pkl','rb') as f:  
         myPara, fD, m, j = pickle.load(f)
@@ -81,6 +90,9 @@ def debug_woodbury_pic():
     print(m.ICM.Mat52.lengthscale)
     print('='*60)
 def debug_model_opt():
+    '''
+    This function print the hyperparameter of model
+    '''
     fname = 'debug_0'
     with open(fname + '/data_debug_woodbury.pkl','rb') as f:  
         myPara, fD, m, j = pickle.load(f)  
@@ -93,6 +105,9 @@ def debug_model_opt():
     m.optimize_restarts(optimizer = 'lbfgsb',num_restarts = 10)
     print(m.ICM.Mat52.lengthscale)
 def debug_woodbury_setup(myPara, fD, m, j):
+    '''
+    a set up funciton for woodbury test
+    '''
     # conditional mean     
     spl_c = CRN_gen(fD, 'c1', myPara.spl_num)[j][0][0]    
     spl_x1 = fD['c1'].X_prd[j][np.newaxis]
@@ -115,6 +130,11 @@ def debug_woodbury_setup(myPara, fD, m, j):
     return K_plus_inv, K_plus, Kx_T, Y , spl_x1, spl_x2, spl_c
 
 def debug_woodbury():
+    '''
+    Find the difference between m.predict and woodbury updates. 
+    When the covariance matrix is singular, the predict performance is poor.
+    How to improve it?
+    '''
     fname = 'debug_0'
     with open(fname + '/data_debug_woodbury.pkl','rb') as f:  
         myPara, fD, m, j = pickle.load(f)       
@@ -158,12 +178,18 @@ def debug_woodbury():
     print("The predict mean use GPy model inverse is {}".format(mean_GPy)) 
 
 def add_col( X, num=0):
+    '''    
+    Add a column for array
+    '''
     if num == 0:
         X = np.hstack([X,np.zeros_like(X)[:,0][:,None]])
     else:
         X = np.hstack([X,np.ones_like(X)[:,0][:,None]])
     return X    
 def debug_dist(K_plus,fD):
+    '''
+    measure the distance between the sampled points
+    '''
     min_dist,min_ind  = find_min_row(K_plus, method = "square")
     print("The abs maximum and minimum entry in K_plus is {} and {}".format(np.max(np.abs(K_plus)),np.min(np.abs(K_plus))))
     print("min_dist in Covariance maxtrix is {} between row {}".format(min_dist,min_ind))    
@@ -180,6 +206,9 @@ def debug_dist(K_plus,fD):
     return    
 
 def find_min_row(K_plus, method = "max"):
+    '''
+    Find the minimum row of array
+    '''
     dim = K_plus.shape[0]
     min_dist = np.inf
     min_ind = ()
@@ -195,6 +224,9 @@ def find_min_row(K_plus, method = "max"):
     return min_dist,min_ind
 
 def hyperpara_verify():
+    '''
+    verify the hyperparameter
+    '''
     fname = 'debug_0'
     with open(fname + '/data_debug_woodbury.pkl','rb') as f:  
         myPara, fD, m, j = pickle.load(f)        
@@ -209,6 +241,9 @@ def hyperpara_verify():
     print('='*60)
     print(m.ICM.Mat52.lengthscale)
 def debug_cv():
+    '''
+    Cross-validation for models.
+    '''
     fname = 'debug_0'
     with open(fname + '/data_debug_woodbury.pkl','rb') as f:  
         myPara, fD, m, j = pickle.load(f) 
@@ -229,6 +264,12 @@ def debug_cv():
               .format(kfold,k,lengthscale_icm))
         print('='*60)
 def cross_validate(X,Y,kfold):
+    '''
+    The cross validation of GP model.
+    input: X, Y (2D array)
+    input: kfold (int)
+    return: mse, lengthscale(2D array)
+    '''
     mse = np.zeros(kfold)
     lengthscale = np.zeros(kfold)
     if X.shape[0] != Y.shape[0]:
@@ -256,6 +297,13 @@ def cross_validate(X,Y,kfold):
         lengthscale[i] = float(m.Mat52.lengthscale)        
     return mse, lengthscale
 def cross_validate_ICM(X,Y,kfold,fD, k='f'):
+    '''
+    The cross valiadation for multitask model.
+    input: X, Y (2D array)
+    input: kfold (int)
+    return: mse, lengthscale(2D array)
+    Here input fD coming from cKG.py 
+    '''
     mse = np.zeros(kfold)
     lengthscale = np.zeros((kfold,2))
     if X.shape[0] != Y.shape[0]:
@@ -294,4 +342,4 @@ if __name__=='__main__':
     #debug_woodbury()
     #debug_model_opt()
     #hyperpara_verify()
-    debug_cv()
+    #debug_cv()

@@ -3,7 +3,7 @@
 Created on Tue Jan  1 14:30:46 2019
 run multi-process in spyder:
 Run > Configuration per file > Execute in an external system terminal
-
+This file is the entrance of cKG, also used for run mutiprocess of cKG.py.
 @author: 44266
 """
 from multiprocessing import Pool
@@ -13,6 +13,8 @@ import cKG
 import os
 
 def main(repeat = 3):    
+    import pdb
+    pdb.set_trace()
     if len(sys.argv) == 1:
         print("Please input experiment name")
         return
@@ -72,6 +74,9 @@ def run_exp(fname, status, stdout='on'):
     cKG.main(num=1000, num_train=5, num_h=2, tau=3000, total=300, spl_num=10, 
              num_k=5, fname = fname, status = status, func = "rosen")
 def debug_main():
+    '''
+    For debug use, only run one experiment
+    '''
     fname = 'debug_0'
     status = 'continue'
     if not os.path.isdir(fname):
@@ -79,6 +84,6 @@ def debug_main():
         status = 'start'
     run_exp(fname, status, stdout='on')
 if __name__ == '__main__':
-    debug_main()
-    #main()
+    #ebug_main()
+    main()
     
