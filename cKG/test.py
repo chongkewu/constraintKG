@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jan  4 18:20:00 2019
-This file include several functions for test and experiment purpose. 
+This file include several functions for test and experiment purpose.
 @author: 44266
 """
 import GPy
@@ -16,36 +16,40 @@ import sys
 import cKG
 import os
 import time
-from cKG import obj_func, CRN_gen, predict_raw_mean,woodbury_inv_check ,\
-woodbury_inv,setup_model
+from cKG import obj_func, CRN_gen, predict_raw_mean, woodbury_inv_check,\
+ woodbury_inv, setup_model
+from GPy.util.linalg import pdinv, dpotrs, dpotri, symmetrify, \
+jitchol, dtrtrs, tdot
 import matplotlib.pyplot as plt
+import numpy.testing as npt
+from GPy.util import diag
 
-def read_data(penalty = 300, func_name = "rosen"):
+def read_data(penalty=300,func_name="rosen"):
     '''
     read data from cKG.py
     '''
-    with open('cKG_data/01172019/'+func_name+'/output0' + '/data.pkl','rb') as f:  
-        myPara,fD = pickle.load(f)
-    coor_ind = myPara.X_ind[:,0]
-    task = myPara.X_ind[:,1]
+    with open('cKG_data/01172019/'+func_name+'/output0' + '/data.pkl', 'rb') as f:
+        myPara, fD = pickle.load(f)
+    coor_ind = myPara.X_ind[:, 0]
+    task = myPara.X_ind[:, 1]
     if func_name == "rosen":
         opt_val = 0
     else:
         opt_val = 0.397887
     utl_set = []
-    for i,c in enumerate(coor_ind):
-        coor = np.array([myPara.X_prd[c,:]])
+    for i, c in enumerate(coor_ind):
+        coor = np.array([myPara.X_prd[c, :]])
         #print(coor,task[i])
         if task[i] == 0:
-            fea = int(obj_func(coor,func_name)['c1']>=0)
-            obj = obj_func(coor,func_name)['f']
+            fea = int(obj_func(coor, func_name)['c1']>=0)
+            obj = obj_func(coor, func_name)['f']
             utl = float(obj*fea + (1-fea)*penalty) - opt_val
             utl_set.append(utl)
         else:
             utl_set.append(utl_set[-1])
     print(utl_set)
-    fig, ax =plt.subplots()
-    ax.plot(range(len(utl_set)),utl_set)    
+    fig, ax = plt.subplots()
+    ax.plot(range(len(utl_set)), utl_set)
     plt.title("utility of " + func_name)
     plt.xlabel("num of evaluation")
 def test_multiprocess():
@@ -53,25 +57,24 @@ def test_multiprocess():
     a function for test multiprocesss
     '''
     p = Pool(4)
-    for i in range(4):    
+    for i in range(4):
         p.apply_async(test_run, args=())
     print('Waiting for all subprocesses done...')
     p.close()
     p.join()
-    print('All subprocesses done.')    
+    print('All subprocesses done.')
     time.sleep(20)
     return
 
 def test_run():
-    
-    print(lhs(2,samples=1000)[0:10,:])
+    print(lhs(2, samples=1000)[0:10, :])
     return
 def debug_woodbury_pic():
     '''
     This function plot the distribution of sample points
     '''
     fname = 'debug_0'
-    with open(fname + '/data_debug_woodbury.pkl','rb') as f:  
+    with open(fname + '/data_debug_woodbury.pkl','rb') as f:
         myPara, fD, m, j = pickle.load(f)
     fig, ax = plt.subplots()    
     assert np.unique(fD['f'].X,axis = 0).shape[0] ==  fD['f'].X.shape[0]
@@ -124,7 +127,7 @@ def debug_woodbury_setup(myPara, fD, m, j):
                     np.vstack([Kx,kxx])\
                     ])\
     )
-    print("The determinant of K_plus: {}".format(np.linalg.det(K_plus)))                
+    print("The condition number of K_plus: {}".format(np.linalg.cond(K_plus)))                
     
 
     return K_plus_inv, K_plus, Kx_T, Y , spl_x1, spl_x2, spl_c
@@ -163,7 +166,7 @@ def debug_woodbury():
     fD['c1'].X = np.vstack([fD['c1'].X,fD['f'].X_prd[j,:][0:2]])    
     m1, _,fD1 = setup_model(fD, "rosen")
     m1.ICM.B.B = m.ICM.B.B
-    m1.ICM.Mat52.lengthscale = m.ICM.Mat52.lengthscale    
+    m1.ICM.Mat52.lengthscale = m.ICM.Mat52.lengthscale        
     mean1,_ = m1.predict(fD1['f'].X_prd, Y_metadata=fD1['f'].noise_dict)        
     fD1['f'].mean_prd = mean1 * fD1['f'].nmlz + fD1['f'].obs_mean
     print("Update model, the m.predict value is{}".format(fD1['f'].mean_prd[j,:]))
@@ -172,6 +175,8 @@ def debug_woodbury():
     Y1 = np.vstack([fD1['f'].Ny,fD1['c1'].Ny])    
     mean_GPy_origin = predict_raw_mean(m1.posterior.woodbury_inv, Kx1.T, Y1, fD1, 'f') 
     print("Update model, use GPy inverse predict_raw_mean is{}".format(mean_GPy_origin))
+    mean_cholesky = Kx1.T@m1.posterior.woodbury_vector* fD1['f'].nmlz + fD1['f'].obs_mean
+    print("Update model with cholesky decomposition, the mean is{}".format(mean_cholesky))
     print('='*60)
     print("The inverse quality use GPy is {}".format(np.max(m1.posterior.woodbury_inv@K_plus - np.eye(K_plus.shape[0]))))
     mean_GPy = predict_raw_mean(m1.posterior.woodbury_inv, Kx_T, Y, fD, 'f')
@@ -234,7 +239,7 @@ def hyperpara_verify():
     Y = fD['f'].Ny
     kernel = GPy.kern.Matern52(input_dim = 2)    
     m1 = GPy.models.GPRegression(X,Y,kernel)
-    m1['.*Mat52.var'].constrain_fixed(1.)    
+    #m1['.*Mat52.var'].constrain_fixed(1.)    
     m1['.*Gaussian_noise'].constrain_fixed(1e-6) 
     m1.optimize_restarts(num_restarts = 10)
     print(m1)
@@ -247,7 +252,7 @@ def debug_cv():
     fname = 'debug_0'
     with open(fname + '/data_debug_woodbury.pkl','rb') as f:  
         myPara, fD, m, j = pickle.load(f) 
-    kfold = 10
+    kfold = 5
     for k in fD.keys():
         X = fD[k].X
         Y = fD[k].Ny
@@ -288,11 +293,10 @@ def cross_validate(X,Y,kfold):
         #print(X_test.shape,X_train.shape,Y_test.shape,Y_train.shape)        
         kernel = GPy.kern.Matern52(input_dim = 2)    
         m = GPy.models.GPRegression(X_train,Y_train,kernel)
-        m['.*Mat52.var'].constrain_fixed(1.)    
+        #m['.*Mat52.var'].constrain_fixed(1.)    
         m['.*Gaussian_noise'].constrain_fixed(1e-6)         
         m.optimize()
         Y_predict,_ = m.predict(X_test)       
-
         mse[i] = np.sum((Y_test - Y_predict)**2)/Y_test.shape[0]
         lengthscale[i] = float(m.Mat52.lengthscale)        
     return mse, lengthscale
@@ -336,6 +340,69 @@ def cross_validate_ICM(X,Y,kfold,fD, k='f'):
         mse[i] = np.sum((Y_test - Y_predict)**2)/Y_test.shape[0]
         lengthscale[i,:] = np.array([float(m.ICM.Mat52.lengthscale[0]),float(m.ICM.Mat52.lengthscale[1])])
     return mse, lengthscale
+def debug_cholesky():
+    '''
+    Use cholesky to make prediction. How to make the cholesky vector
+    (m.posterior.woodbury_vector)?
+    '''
+    fname = 'debug_0'
+    with open(fname + '/data_debug_woodbury.pkl','rb') as f:  
+        myPara, fD, m, j = pickle.load(f)       
+    K_plus_inv, K_plus, Kx_T, Y ,spl_x1, spl_x2, spl_c = debug_woodbury_setup\
+    (myPara, fD, m, j)        
+    print("The true value is:{}".format(obj_func(fD['f'].X_prd[j,:][np.newaxis])))
+    fD['c1'].X = np.vstack([fD['c1'].X,fD['f'].X_prd[j,:][0:2]])        
+    fD1 = deepcopy(fD)    
+    for ea in fD1.keys():        
+        fD1[ea].obs_val = obj_func(fD1[ea].X, "rosen")[ea][:,None]            
+        fD1[ea].Ny = (fD1[ea].obs_val - fD[ea].obs_mean)/fD[ea].nmlz  
+    fD1['c1'].Ny[-1,:] = spl_c  
+    Ny = [fD1['f'].Ny,fD1['c1'].Ny]
+    K = GPy.kern.Matern52(input_dim=2, ARD = True)
+    icm = GPy.util.multioutput.ICM(input_dim=2,num_outputs=2,kernel=K)
+    m1 = GPy.models.GPCoregionalizedRegression([fD['f'].X, fD['c1'].X],Ny,kernel=icm)        
+    m1['.*Mat52.var'].constrain_fixed(1.)    
+    m1['.*Gaussian_noise'].constrain_fixed(1e-6)         
+    m1.optimize(optimizer = 'lbfgsb')       
+    m1.ICM.B.B = m.ICM.B.B      
+    m1.ICM.Mat52.lengthscale = m.ICM.Mat52.lengthscale 
+    mean1,var1 = m1.predict(fD1['f'].X_prd, Y_metadata=fD1['f'].noise_dict)        
+    fD1['f'].mean_prd = mean1 * fD1['f'].nmlz + fD1['f'].obs_mean
+    print("Update model, the m.predict value is{}".format(fD1['f'].mean_prd[j,:]))
+    pred_var1 = ObsAr(np.vstack([add_col(fD1['f'].X,0),add_col(fD1['c1'].X,1)]))
+    Kx1 = m1.kern.K(pred_var1, spl_x2)         
+    Y1 = np.vstack([fD1['f'].Ny,fD1['c1'].Ny])    
+    mean_cholesky = Kx1.T@m1.posterior.woodbury_vector* fD1['f'].nmlz + fD1['f'].obs_mean
+    print("Update model with cholesky decomposition, the mean is{}".format(mean_cholesky))    
+    print('='*60)    
+    Kx1_m = m.kern.K(pred_var1, spl_x2)   
+    npt.assert_array_equal(Kx1_m,Kx1)
+    print("The L_inf of Y - mean is {}".format(np.max(m.Y - m.posterior.mean)))
+    npt.assert_array_equal(K_plus,m1.posterior._K)
+    K_chol = jitchol(K_plus)    
+    npt.assert_array_equal(m1.posterior.K_chol,K_chol)
+    npt.assert_array_equal(Y,Y1)    
+    Mywoodbury_vector,_ = dpotrs(K_chol, Y)    
+    print("The L_inf of Mywoodbury_vector - woodbury_vector is {}"\
+          .format(np.max(Mywoodbury_vector - m1.posterior.woodbury_vector)))          
+    Ky = K_plus.copy()
+    diag.add(Ky,1e-6*np.ones(Ky.shape[0])+1e-8)
+    #Wi, LW, LWi, W_logdet = pdinv(Ky)
+    LW = jitchol(Ky)
+    alpha, _ = dpotrs(LW, Y, lower=1)    
+    print("The L_inf of alpha - woodbury_vector is {}"\
+          .format(np.max(alpha- m1.posterior.woodbury_vector)))   
+    print("The predict mean with alpha is {}".format(Kx1_m.T@alpha* fD1['f'].nmlz + fD1['f'].obs_mean))
+    print('='*60)
+    print("The update model predicted variance is {}".format(var1[j,:]))
+    Mywoodbury_inv, _ = dpotri(LW, lower=1)
+    symmetrify(Mywoodbury_inv)
+    print("The L_inf of Mywoodbury_inv - woodbury_inv is {}"\
+          .format(np.max(Mywoodbury_inv - m1.posterior.woodbury_inv)))
+    Kxx = m.kern.Kdiag(spl_x2)
+    tmp = dtrtrs(m1.posterior._woodbury_chol, Kx1_m)[0]
+    Myvar = (Kxx - np.square(tmp).sum(0))[:, None]
+    print(Myvar+1e-6)
 if __name__=='__main__':    
     #read_data()
     #test_multiprocess()
@@ -343,3 +410,4 @@ if __name__=='__main__':
     #debug_model_opt()
     #hyperpara_verify()
     #debug_cv()
+    debug_cholesky()
