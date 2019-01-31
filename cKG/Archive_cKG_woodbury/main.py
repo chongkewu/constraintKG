@@ -22,7 +22,7 @@ def main(repeat = 3):
         print("Too many parameters")
         return
     else:
-        EXPname = str(sys.argv[1])
+        EXPname = str(sys.argv[1])        
         p = Pool(28)
         for i in range(repeat):
             fname = EXPname + '/output' + str(i)
@@ -39,10 +39,12 @@ def main(repeat = 3):
         p.close()
         p.join()
         print('All subprocesses done.')
-def run_exp(fname, status, stdout='on'):   
+def run_exp(fname, status, stdout='on'):  
+   
     fname = os.path.abspath(fname)
     logger = logging.getLogger('main')
     logger.setLevel(level=logging.DEBUG)
+    
     logger.handlers = []
     # Handler
     if status == 'start':
@@ -62,24 +64,26 @@ def run_exp(fname, status, stdout='on'):
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    
     if stdout == 'on':
         # StreamHandler
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setLevel(level=logging.INFO)
         logger.addHandler(stream_handler)
     
-    cKG.main(num=50, num_train=5, num_h=2, tau=3000, total=300, spl_num=10, 
+    cKG.main(num=1000, num_train=5, num_h=2, tau=3000, total=300, spl_num=10, 
              num_k=5, fname = fname, status = status, func = "rosen")
 def debug_main():
     '''
     For debug use, only run one experiment
     '''
     fname = 'debug_0'
-    status = 'start'
+    status = 'continue'
     if not os.path.isdir(fname):
         os.makedirs(fname)
         status = 'start'
     run_exp(fname, status, stdout='on')
 if __name__ == '__main__':
-    debug_main()
-    #main()
+    #ebug_main()
+    main()
+    

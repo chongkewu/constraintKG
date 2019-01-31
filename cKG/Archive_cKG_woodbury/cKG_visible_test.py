@@ -131,12 +131,12 @@ def rosen_constraint1(params):
 def Mat_Rosen(num=200, num_train = 50):
     X_prd = lhs(2,samples = num)*4-2
     X = X_prd[0:num_train,:]    
-    obj = rosen_constraint(X)['f'][:,None]    
+    obj = obj_func(X)['f'][:,None]    
     offset_obj = np.mean(obj) 
     obj = obj - offset_obj
-    true_obj = rosen_constraint(X_prd)['f'][:,None]    
+    true_obj = obj_func(X_prd)['f'][:,None]    
     
-    cons = rosen_constraint(X)['c1'][:,None]  
+    cons = obj_func(X)['c1'][:,None]  
     cons = cons - np.mean(cons)
     kernel = GPy.kern.Matern52(input_dim=2, ARD = True)
     m = GPy.models.GPRegression(X,obj,kernel,noise_var = 0.01)
@@ -144,8 +144,8 @@ def Mat_Rosen(num=200, num_train = 50):
     #m.optimize(optimizer = 'lbfgsb')
     
     m1 = m.copy()
-    m.optimize_restarts(optimizer = 'lbfgsb',num_restarts = 10)
-    m1.optimize_restarts(optimizer = 'scg',num_restarts = 2)
+    m.optimize_restarts(optimizer = 'lbfgsb',num_restarts = 3)
+    m1.optimize_restarts(optimizer = 'scg',num_restarts = 1)
     mean,var = m.predict(X_prd)
     mean1,var1 = m1.predict(X_prd)
     dev = mean+offset_obj-true_obj
