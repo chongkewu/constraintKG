@@ -12,6 +12,7 @@ import logging
 import pickle
 import os
 from copy import deepcopy
+from prettytable import PrettyTable
 import GPy
 from GPy.util.linalg import dpotrs, dpotri, symmetrify, \
 jitchol, dtrtrs
@@ -40,7 +41,7 @@ def main(num=1000, num_train=10, num_h=2, tau=3000, total=300, spl_num=10, \
         un_star = get_un_star(fD, myPara, m, spl_num)
         En_un_1_set = get_En_un_1_star_fast(fD, myPara, m, num_k)
         logger.debug('sampled f point and value is\n %s \n', \
-                     np.hstack([fD['f'].X, fD['f'].obs_val]))
+                     np.round(np.hstack([fD['f'].X, fD['f'].obs_val]), 6))
         fD = Get_min_cKG(fD, myPara, En_un_1_set, un_star, func)
         with open(fname + '/data.pkl', 'wb') as f:
             pickle.dump([myPara, fD], f)
@@ -91,7 +92,7 @@ def get_En_un_1_star_fast(fD, myPara, m, num_k=5):
             spl_x1 = np.array([fD[ea].X_prd[ind]])
             myPara1.get_Lw_n1(m, myPara, spl_x1)
             fD1 = update_fD(m, fD1, myPara1, 'var')
-            myPara1.get_Lw_set(m, myPara, fD1)
+            myPara1.get_Lw_set(m, myPara1, fD1)
             En_un_1_set[ea].val[ind] = Aver_En_un_1_samples(m, fD1, myPara, myPara1, spl_ind[0])
     logger = logging.getLogger('main.cKG')
     logger.debug("spl_set_En dimension is %s", spl_set_En.shape)
@@ -241,9 +242,6 @@ def get_un_star(fD, myPara, m, spl_num):
     un_set = np.zeros((myPara.num, 1))
     E_n_condi = np.zeros((myPara.num, 1))
     logger = logging.getLogger('main.cKG')
-    logger.debug('Pr_feasible dimmension is %s, max %s min %s', \
-                 Pr_feasible.shape, np.max(Pr_feasible), np.min(Pr_feasible))
-    logger.debug('spl_set dimmension is %s', spl_set.shape)
     for j in range(myPara.num):
         spl_x1 = np.array([fD['c1'].X_prd[j]])
         spl_x2 = np.array([fD['f'].X_prd[j]])
@@ -254,12 +252,32 @@ def get_un_star(fD, myPara, m, spl_num):
         Aver_Un_star_samples(un_set, E_n_condi, j, myPara, spl_set, Lw, Kx_plus, Pr_feasible, fD)
     un_star = np.min(un_set)
     ind = np.unravel_index(np.argmin(un_set, axis=None), un_set.shape)[0]
-    logger.info("un_star is %s at point %s, condition expected mean %s, posterior mean %s,variance %s, feasible probability %s"
-                , un_star, myPara.X_prd[ind, :], E_n_condi[ind, 0], fD['f'].mean_prd[ind, 0], fD['f'].var_prd[ind, 0], Pr_feasible[ind, 0])
-    logger.debug("Coordinate (2D), f predict mean, var, un_set, E_n_condi, feasiblity, f predict mean use K_inv is \n%s\n"
-                 , np.hstack([myPara.X_prd, fD['f'].mean_prd, fD['f'].var_prd, un_set, E_n_condi, Pr_feasible])[0:20, :])
+    myPara.rec_ind = ind
+
+    col_names = ["un_star", "position", "condi_expec_mean", "post_mean", "post_var", "feasi_prob"]
+    tab_var = [un_star, myPara.X_prd[ind, :], E_n_condi[ind, 0], fD['f'].mean_prd[ind, 0], \
+               fD['f'].var_prd[ind, 0], Pr_feasible[ind, 0]]
+    tab = get_tab(col_names, tab_var)
+    logger.info("\n%s", tab)
+    col_names = ["Coordinate", "f_true_val", "f_predict_mean", "E_n_condi", "f_predict_var", "un_set", "feasiblity"]
+    slc_n = 20
+    tab_var = [myPara.X_prd[0:slc_n, :], obj_func(myPara.X_prd[0:slc_n, :])['f'], fD['f'].mean_prd[0:slc_n, :], \
+               E_n_condi[0:slc_n, :], fD['f'].var_prd[0:slc_n, :], un_set[0:slc_n, :], Pr_feasible[0:slc_n, :]]
+    tab = get_tab(col_names, tab_var, "numpy")
+    logger.debug("\n%s", tab)
     logger.debug("K max and min is %s", [np.max(m.posterior._K), np.min(m.posterior._K)])
     return un_star
+def get_tab(col_names, tab_var, default = "float"):
+    if len(col_names) != len(tab_var):
+        raise ValueError("please check the table input dimension")
+    else:
+        tab = PrettyTable()
+        for i in range(len(col_names)):
+            if default == "float":
+                tab.add_column(col_names[i], [np.round(tab_var[i], 6)])
+            else:
+                tab.add_column(col_names[i], np.round(tab_var[i], 6))
+    return tab
 def jitchol_plus(m, pred_var, cov, X_new, noise=1e-6):
     '''
     Add new points to form new matrix: add columns and rows to covariance Matrix,
@@ -332,7 +350,7 @@ class SampleParams(object):
             spl_x = np.array([fD1['c1'].X_prd[l]])
             spl_x1 = np.array([fD1['f'].X_prd[l]])
             Xnew = np.vstack([myPara.pred_var[-1, :][np.newaxis], spl_x])            
-            self.Lw_set[l] = jitchol_plus(m, myPara.pred_var, m.posterior._K, Xnew)
+            self.Lw_set[l] = jitchol_plus(m, myPara.pred_var[:-1,:], m.posterior._K, Xnew)
             temp_pred_var = np.vstack([self.pred_var, spl_x])
             self.Kx_set[l] = m.kern.K(temp_pred_var, spl_x1)
 def add_col(X, num=0):
