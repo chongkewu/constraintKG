@@ -26,9 +26,10 @@ def main(num=1000, num_train=10, num_h=2, tau=3000, total=300, spl_num=10, \
          num_k=5, fname=os.getcwd(), status='start', func="rosen"):
     np.set_printoptions(linewidth=150)
     logger = logging.getLogger('main.cKG')
-    logger.info('cKG begins at num = %s, num_train = %s, num_h = %s, '
-                'tau = %s, total = %s, spl_num = %s, num_k = %s func = %s\n'
-                , num, num_train, num_h, tau, total, spl_num, num_k, func)
+    tab_names = ["num", "num_train", "num_h", "tau", "total", "spl_num", "num_k", "func"]
+    tab_vars = [num, num_train, num_h, tau, total, spl_num, num_k, func]
+    tab = get_tab(tab_names, tab_vars)
+    logger.info("\n%s", tab)
     if status == 'start':
         myPara, fD = init_Para_fD(num, tau, num_h, spl_num, num_train, func, fname)
     else:
@@ -40,8 +41,6 @@ def main(num=1000, num_train=10, num_h=2, tau=3000, total=300, spl_num=10, \
         logger.info('Number of sampled points: %s', myPara.pred_var.shape[0])
         un_star = get_un_star(fD, myPara, m, spl_num)
         En_un_1_set = get_En_un_1_star_fast(fD, myPara, m, num_k)
-        logger.debug('sampled f point and value is\n %s \n', \
-                     np.round(np.hstack([fD['f'].X, fD['f'].obs_val]), 6))
         fD = Get_min_cKG(fD, myPara, En_un_1_set, un_star, func)
         with open(fname + '/data.pkl', 'wb') as f:
             pickle.dump([myPara, fD], f)
@@ -67,8 +66,8 @@ def update_fD(m, fD1, myPara1, task):
             Kxx = m.kern.Kdiag(fD1[ea1].X_prd)
             Lw = myPara1.Lw_n1
             var = predict_chol_var(Kx, Lw, Kxx, noise=1e-6)
-            var = (var - fD1[ea1].noise)* fD1[ea1].nmlz ** 2
-            fD1[ea1].var_prd = var.clip(min=0) + fD1[ea1].noise
+            var = (var - 2*fD1[ea1].noise).clip(min=0)
+            fD1[ea1].var_prd = var*fD1[ea1].nmlz**2 + fD1[ea1].noise
         elif task == 'mean' and ea1 == 'f':
             Lw = myPara1.Lw_n1
             Kx = m.kern.K(myPara1.pred_var, fD1[ea1].X_prd)
@@ -94,8 +93,6 @@ def get_En_un_1_star_fast(fD, myPara, m, num_k=5):
             fD1 = update_fD(m, fD1, myPara1, 'var')
             myPara1.get_Lw_set(m, myPara1, fD1)
             En_un_1_set[ea].val[ind] = Aver_En_un_1_samples(m, fD1, myPara, myPara1, spl_ind[0])
-    logger = logging.getLogger('main.cKG')
-    logger.debug("spl_set_En dimension is %s", spl_set_En.shape)
     return En_un_1_set
 def Aver_En_un_1_samples(m, fD1, myPara, myPara1, samples):
     '''
@@ -193,9 +190,8 @@ def setup_model(fD, func, noise=1e-6):
     for k in fD.keys():
         mean, var = m.predict(fD[k].X_prd, Y_metadata=fD[k].noise_dict)
         fD[k].mean_prd = mean * fD[k].nmlz + fD[k].obs_mean
-        fD[k].var_prd = var - 2 * fD[k].noise
-        fD[k].var_prd = fD[k].var_prd.clip(min=0)
-        fD[k].var_prd = fD[k].var_prd * fD[k].nmlz**2 + 2 * fD[k].noise
+        fD[k].var_prd = (var - 2*noise).clip(min=0)        
+        fD[k].var_prd = fD[k].var_prd * fD[k].nmlz**2 + noise
     return m, fD
 def Get_min_cKG(fD, myPara, En_un_1_set, un_star, func):
     '''
@@ -222,13 +218,15 @@ def Get_min_cKG(fD, myPara, En_un_1_set, un_star, func):
     except:
         raise UnboundLocalError('the cKG computation fails')
     fD[min_task].X = np.vstack([fD[min_task].X, spl_pt[:, 0:-1]])
+    
+    slc_n = 50
+    tab_names = ["position", "expec_un+1_f", "expec_un+1_c1"]
+    tab_vars = [myPara.X_prd[0:slc_n, :], En_un_1_set['f'].val[0:slc_n, :] \
+                , En_un_1_set['c1'].val[0:slc_n, :]]
+    tab = get_tab(tab_names, tab_vars, default="numpyarray")
+    logger.debug("\n%s", tab)
     logger.info("The Next Sample task is {} at point {} cKG is {}"\
                 .format(min_task, str(spl_pt[0, 0:-1]), min_cKG[0]))
-    logger.info("The obj value is %s, feasiblility is %s", \
-                obj_func(spl_pt, func)['f'][0], (obj_func(spl_pt, func)['c1'][0] > 0))
-    logger.info("The feasible probability is %s", \
-                -norm.cdf(0, loc=fD['c1'].mean_prd[min_ind], \
-                          scale=np.sqrt(fD['c1'].var_prd[min_ind]))+1)
     logger.info("Evaluate f {} times, c1 {} times\n"\
                 .format(fD['f'].X.shape[0], fD['c1'].X.shape[0]))
     return fD
@@ -254,18 +252,23 @@ def get_un_star(fD, myPara, m, spl_num):
     ind = np.unravel_index(np.argmin(un_set, axis=None), un_set.shape)[0]
     myPara.rec_ind = ind
 
-    col_names = ["un_star", "position", "condi_expec_mean", "post_mean", "post_var", "feasi_prob"]
+    col_names = ["un_star", "position", "condi_expec_mean", "post_mean", \
+                 "post_var", "feasi_prob", "true_f_val", "true_c_val"]
     tab_var = [un_star, myPara.X_prd[ind, :], E_n_condi[ind, 0], fD['f'].mean_prd[ind, 0], \
-               fD['f'].var_prd[ind, 0], Pr_feasible[ind, 0]]
+               fD['f'].var_prd[ind, 0], Pr_feasible[ind, 0], \
+               obj_func(myPara.X_prd[ind, :][None], myPara.func)['f'], \
+               obj_func(myPara.X_prd[ind, :][None], myPara.func)['c1']]
     tab = get_tab(col_names, tab_var)
     logger.info("\n%s", tab)
-    col_names = ["Coordinate", "f_true_val", "f_predict_mean", "E_n_condi", "f_predict_var", "un_set", "feasiblity"]
-    slc_n = 20
-    tab_var = [myPara.X_prd[0:slc_n, :], obj_func(myPara.X_prd[0:slc_n, :])['f'], fD['f'].mean_prd[0:slc_n, :], \
+    col_names = ["Coordinate", "f_true_val", "f_predict_mean", "E_n_condi", \
+                 "f_predict_var", "un_set", "feasiblity"]
+    slc_n = 50
+    tab_var = [myPara.X_prd[0:slc_n, :], obj_func(myPara.X_prd[0:slc_n, :], \
+               myPara.func)['f'], fD['f'].mean_prd[0:slc_n, :], \
                E_n_condi[0:slc_n, :], fD['f'].var_prd[0:slc_n, :], un_set[0:slc_n, :], Pr_feasible[0:slc_n, :]]
-    tab = get_tab(col_names, tab_var, "numpy")
+    tab = get_tab(col_names, tab_var, "numpyarray")
     logger.debug("\n%s", tab)
-    logger.debug("K max and min is %s", [np.max(m.posterior._K), np.min(m.posterior._K)])
+    logger.debug("Covariance matrix max and min is %s", [np.max(m.posterior._K), np.min(m.posterior._K)])
     return un_star
 def get_tab(col_names, tab_var, default = "float"):
     if len(col_names) != len(tab_var):
@@ -273,7 +276,9 @@ def get_tab(col_names, tab_var, default = "float"):
     else:
         tab = PrettyTable()
         for i in range(len(col_names)):
-            if default == "float":
+            if type(tab_var[i]) == str:
+                tab.add_column(col_names[i], [tab_var[i]])                
+            elif default == "float":
                 tab.add_column(col_names[i], [np.round(tab_var[i], 6)])
             else:
                 tab.add_column(col_names[i], np.round(tab_var[i], 6))
@@ -318,6 +323,7 @@ class SampleParams(object):
         self.num_h = num_h
         self.spl_num = spl_num
         self.num_train = num_train
+        self.func = func
         for _ in range(int(fname[-1])+1):
             if func == "rosen":
                 self.X_prd = lhs(2, samples=num)*4-2

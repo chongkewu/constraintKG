@@ -10,6 +10,7 @@ import numpy as np
 import numpy.testing as npt
 import pandas as pd
 from pyDOE import lhs
+from prettytable import PrettyTable
 import GPy
 from GPy.util.linalg import pdinv, jitchol
 from GPy.util import diag
@@ -185,10 +186,41 @@ def test_func_correlation():
     model['.*Gaussian_noise'].constrain_fixed(1e-6)  
     model.optimize_restarts(num_restarts=5, verbose=False)
     print(model.kern.B.B)
+def test_nmlz_var(task='f', num=50, num_train=25, sln=40, stn=0):
+    '''
+    test if the normlizer will effect the variance or not
+    '''
+    _, func_d = init_Para_fD(num=num, tau=3000, num_h=2, spl_num=10, num_train=num_train,\
+                         func="rosen", fname="debug_0")
+    func_d = update_func_d(func_d)
+    kern = GPy.kern.Matern52(input_dim=2, ARD = True)
+    icm = GPy.util.multioutput.ICM(input_dim=2,num_outputs=2,kernel=kern)
+    model = GPy.models.GPCoregionalizedRegression([func_d['f'].X, func_d['c1'].X], \
+                                                  [func_d['f'].obs_val, func_d['c1'].obs_val],kernel=icm)    
+    model['.*Mat52.var'].constrain_fixed(1.)
+    model['.*Gaussian_noise'].constrain_fixed(1e-6)  
+    model.optimize_restarts(num_restarts=5, verbose=False)
+    _, var = model.predict(func_d['f'].X_prd, Y_metadata=func_d['f'].noise_dict)
+    model = GPy.models.GPCoregionalizedRegression([func_d['f'].X, func_d['c1'].X], \
+                                                  [func_d['f'].Ny, func_d['c1'].Ny],kernel=icm)    
+    model['.*Mat52.var'].constrain_fixed(1.)
+    model['.*Gaussian_noise'].constrain_fixed(1e-6)  
+    model.optimize_restarts(num_restarts=5, verbose=False)
+    _, var_norm = model.predict(func_d['f'].X_prd, Y_metadata=func_d['f'].noise_dict)    
+    var1 = var[stn:stn+sln, :]
+    var2 = (var_norm[stn:stn+sln, :]-2*1e-6).clip(min=0)*(func_d['f'].nmlz**2)+1e-6
+    tab = PrettyTable()
+    tab.add_column("coordinate", np.round(func_d['f'].X_prd[stn:stn+sln, :-1], 3))
+    tab.add_column("var_obs", var1)
+    tab.add_column("var_norm", var2)
+    tab.add_column("var_obs >= var_norm", var1 >= var2)
+    tab.add_column("diff_var_percent", np.abs(var1-var2)/np.max([var1,var2],axis=0))
+    print(tab)
 if __name__ == '__main__':
     #cholesky_update_stability(）
     #cholesky_update_feasibility(）
     #test_cholesky_update_accuracy()
     #test_hyperpara_icm()
     #test_hyperpara_gpr()
-    test_func_correlation()
+    #test_func_correlation()
+    test_nmlz_var()

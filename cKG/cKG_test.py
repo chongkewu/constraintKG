@@ -27,7 +27,9 @@ class Test_predict_cholesky(unittest.TestCase):
         npt.assert_array_equal(m.X, myPara.pred_var)
         npt.assert_array_equal(m.Y, myPara.Y)        
         mean, var = m.predict(fD['f'].X_prd, Y_metadata=fD['f'].noise_dict)
-        mean_chol, var_chol = predict_chol(m, fD['f'].X_prd)        
+        mean_chol, var_chol = predict_chol(m, fD['f'].X_prd)
+        import pdb
+        pdb.set_trace()
         npt.assert_array_equal(mean_chol, mean)
         npt.assert_array_equal(var_chol, var)
     def test_predict_chol_mean(self):

@@ -26,7 +26,6 @@ def main(repeat = 3):
         p = Pool(28)
         for i in range(repeat):
             fname = EXPname + '/output' + str(i)
-            
             if os.path.isdir(fname):
                 print("ready to continue experiment " + fname)
                 status = 'continue'
