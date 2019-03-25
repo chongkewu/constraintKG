@@ -12,9 +12,7 @@ import sys
 import cKG
 import os
 
-def main(repeat = 3):    
-    import pdb
-    pdb.set_trace()
+def main(repeat = 3):
     if len(sys.argv) == 1:
         print("Please input experiment name")
         return
@@ -67,7 +65,7 @@ def run_exp(fname, status, stdout='on'):
         stream_handler.setLevel(level=logging.INFO)
         logger.addHandler(stream_handler)
     
-    cKG.main(num=50, num_train=5, num_h=2, tau=3000, total=300, spl_num=10, 
+    cKG.main(num=50, num_train=2, num_h=2, tau=3000, total=300, spl_num=10, 
              num_k=5, fname = fname, status = status, func = "rosen")
 def debug_main():
     '''

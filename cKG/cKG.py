@@ -11,6 +11,9 @@ The detail refers to the note miso_with_constraints.
 import logging
 import pickle
 import os
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
 from copy import deepcopy
 from prettytable import PrettyTable
 import GPy
@@ -21,6 +24,7 @@ import numpy as np
 from pyDOE import lhs
 from scipy.stats import norm
 from paramz import ObsAr
+#from time import time
 
 def main(num=1000, num_train=10, num_h=2, tau=3000, total=300, spl_num=10, \
          num_k=5, fname=os.getcwd(), status='start', func="rosen"):
@@ -38,8 +42,8 @@ def main(num=1000, num_train=10, num_h=2, tau=3000, total=300, spl_num=10, \
     for _ in range(total):
         m, fD = setup_model(fD, func)
         myPara.update(fD)
-        logger.info('Number of sampled points: %s', myPara.pred_var.shape[0])
-        un_star = get_un_star(fD, myPara, m, spl_num)
+        logger.info('Number of sampled points: %s', myPara.pred_var.shape[0])        
+        un_star = get_un_star(fD, myPara, m, spl_num)        
         En_un_1_set = get_En_un_1_star_fast(fD, myPara, m, num_k)
         fD = Get_min_cKG(fD, myPara, En_un_1_set, un_star, func)
         with open(fname + '/data.pkl', 'wb') as f:
@@ -52,7 +56,7 @@ def init_Para_fD(num, tau, num_h, spl_num, num_train, func, fname):
     myPara = SampleParams(num, tau, num_h, spl_num, num_train, func, fname)
     fD = {'f': None, 'c1': None}
     for k in fD.keys():
-        fD[k] = Func_Dict(myPara.X_prd, num_train, k)
+        fD[k] = Func_Dict(myPara.X_prd, num_train, k, fname)
     return myPara, fD
 
 def update_fD(m, fD1, myPara1, task):
@@ -87,12 +91,12 @@ def get_En_un_1_star_fast(fD, myPara, m, num_k=5):
         spl_set_En = CRN_gen(fD, ea, num_k)
         myPara1, fD1 = deepcopy(myPara), deepcopy(fD)
         for ind, spl_ind in enumerate(spl_set_En):
-            #print(str(ind)+'/'+str(myPara1.num)+' in task '+ea)
-            spl_x1 = np.array([fD[ea].X_prd[ind]])
-            myPara1.get_Lw_n1(m, myPara, spl_x1)
-            fD1 = update_fD(m, fD1, myPara1, 'var')
-            myPara1.get_Lw_set(m, myPara1, fD1)
-            En_un_1_set[ea].val[ind] = Aver_En_un_1_samples(m, fD1, myPara, myPara1, spl_ind[0])
+            #print(str(ind)+'/'+str(myPara1.num)+' in task '+ea)            
+            spl_x1 = np.array([fD[ea].X_prd[ind]])            
+            myPara1.get_Lw_n1(m, myPara, spl_x1)            
+            fD1 = update_fD(m, fD1, myPara1, 'var')            
+            myPara1.get_Lw_set(m, myPara1, fD1)                              
+            En_un_1_set[ea].val[ind] = Aver_En_un_1_samples(m, fD1, myPara, myPara1, spl_ind[0])             
     return En_un_1_set
 def Aver_En_un_1_samples(m, fD1, myPara, myPara1, samples):
     '''
@@ -118,12 +122,12 @@ def get_un_star_fast(fD, myPara):
     Pr_feasible = -norm.cdf(0, loc=fD['c1'].mean_prd, scale=np.sqrt(fD['c1'].var_prd))+1
     # get E_n{g(x)|x is feasible}
     un_set = np.zeros((myPara.num, 1))
-    E_n_condi = np.zeros((myPara.num, 1))
+    E_n_condi = np.zeros((myPara.num, 1))    
     for j in range(myPara.num):
         Lw = myPara.Lw_set[j]
         Kx_plus = myPara.Kx_set[j]
         un_set, _ = Aver_Un_star_samples(un_set, E_n_condi, j, myPara, \
-                                        spl_set, Lw, Kx_plus, Pr_feasible, fD)
+                                        spl_set, Lw, Kx_plus, Pr_feasible, fD)    
     un_star = np.min(un_set)
     return un_star
 def Aver_Un_star_samples(un_set, E_n_condi, j, myPara, spl_set, Lw, Kx, Pr_feasible, fD):
@@ -250,8 +254,7 @@ def get_un_star(fD, myPara, m, spl_num):
         Aver_Un_star_samples(un_set, E_n_condi, j, myPara, spl_set, Lw, Kx_plus, Pr_feasible, fD)
     un_star = np.min(un_set)
     ind = np.unravel_index(np.argmin(un_set, axis=None), un_set.shape)[0]
-    myPara.rec_ind = ind
-
+    myPara.rec_ind.append(ind)
     col_names = ["un_star", "position", "condi_expec_mean", "post_mean", \
                  "post_var", "feasi_prob", "true_f_val", "true_c_val"]
     tab_var = [un_star, myPara.X_prd[ind, :], E_n_condi[ind, 0], fD['f'].mean_prd[ind, 0], \
@@ -299,9 +302,9 @@ class Func_Dict(object):
     '''
     The class of fD, store the function sample value and position.
     '''
-    def __init__(self, X_prd, num_train, task):
-        self.X = X_prd[0:num_train, :]
-        self.X_ind = np.array([range(num_train)]).T
+    def __init__(self, X_prd, num_train, task, fname):        
+        self.X_ind = np.random.randint(X_prd.shape[0], size=(200, num_train))[int(fname[-1]), :][:, None]
+        self.X = X_prd[self.X_ind[:, 0]]
         # prediction need to add extra colloum to X_prd to select predicted function
         if task == 'f':
             self.X_prd = np.hstack([X_prd, np.zeros_like(X_prd)[:, 0][:, None]])
@@ -324,17 +327,17 @@ class SampleParams(object):
         self.spl_num = spl_num
         self.num_train = num_train
         self.func = func
-        for _ in range(int(fname[-1])+1):
-            if func == "rosen":
-                self.X_prd = lhs(2, samples=num)*4-2
-            else:
-                lhs_s = lhs(2, samples=num)
-                self.X_prd = np.hstack([np.array([15*lhs_s[:, 0]-5]).T, \
-                                        np.array([15*lhs_s[:, 1]]).T])
-        ind = np.array([range(num_train)]).T
+        if func == "rosen":
+            self.X_prd = lhs(2, samples=num)*4-2
+        else:
+            lhs_s = lhs(2, samples=num)
+            self.X_prd = np.hstack([np.array([15*lhs_s[:, 0]-5]).T, \
+                                    np.array([15*lhs_s[:, 1]]).T])
+        ind = np.random.randint(100, size=(200, num_train))[int(fname[-1]), :][:, None]
         ind1 = np.hstack([ind, np.zeros_like(ind)[:, 0][:, None]])
         ind2 = np.hstack([ind, np.ones_like(ind)[:, 0][:, None]])
         self.X_ind = np.vstack([ind1,ind2])
+        self.rec_ind = []
     def update(self, fD):
         self.Y = np.vstack([fD['f'].Ny, fD['c1'].Ny])
         self.pred_var = ObsAr(np.vstack([add_col(fD['f'].X, 0), add_col(fD['c1'].X, 1)]))
